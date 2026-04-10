@@ -129,6 +129,8 @@ C:\Users\Rokas\Desktop\PP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\ŽVPAIS_API.g
 C:\Users\Rokas\Desktop\PP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\ref\ŽVPAIS_API.dll
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\appsettings.json
+C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\frontend\package-lock.json
+C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\frontend\package.json
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\ŽVPAIS_API.staticwebassets.endpoints.json
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\ŽVPAIS_API.exe
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\bin\Debug\net8.0\ŽVPAIS_API.deps.json
@@ -242,6 +244,7 @@ C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\ŽVPAI
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\ŽVPAIS_API.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\ŽVPAIS_API.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\EFCoreNpgsqlNetTopologySuite.cs
+C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\ŽVPAIS_API.sourcelink.json
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\rjimswa.dswa.cache.json
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\Users\Rokas\Desktop\PP_ir_BBP\ŽVPAIS_API\ŽVPAIS_API\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
