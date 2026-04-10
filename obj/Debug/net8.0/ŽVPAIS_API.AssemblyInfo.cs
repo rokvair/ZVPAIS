@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ŽVPAIS_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+980e2dd25485ad719267194a2b9fbb056e0381be")]
 [assembly: System.Reflection.AssemblyProductAttribute("ŽVPAIS_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ŽVPAIS_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
