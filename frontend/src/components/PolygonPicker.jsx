@@ -16,11 +16,15 @@ const PolygonPicker = ({ onPolygonChange, initialPolygon }) => {
   const featureGroupRef = useRef(null);
 
   useEffect(() => {
-    if (!initialPolygon || !featureGroupRef.current) return;
-    const fg = featureGroupRef.current;
-    fg.clearLayers();
-    const layer = L.geoJSON(initialPolygon);
-    layer.eachLayer(l => fg.addLayer(l));
+    if (!initialPolygon) return;
+    const timer = setTimeout(() => {
+      if (!featureGroupRef.current) return;
+      const fg = featureGroupRef.current;
+      fg.clearLayers();
+      const layer = L.geoJSON(initialPolygon);
+      layer.eachLayer(l => fg.addLayer(l));
+    }, 100);
+    return () => clearTimeout(timer);
   }, [initialPolygon]);
 
   const handleCreated = (e) => {
