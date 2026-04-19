@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5219/api',
-});
+const baseURL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5219/api'
+  : 'https://zvpis-backend-gmdudghme8gvb9er.uaenorth-01.azurewebsites.net/api';
+
+const api = axios.create({ baseURL });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
