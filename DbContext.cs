@@ -28,7 +28,8 @@ namespace ŽVPAIS_API.Data
             modelBuilder.Entity<EventObject>()
                 .HasOne(eo => eo.Event)
                 .WithMany(e => e.EventObjects)
-                .HasForeignKey(eo => eo.EventId);
+                .HasForeignKey(eo => eo.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<EventObject>()
                 .HasOne(eo => eo.Object)
                 .WithMany(o => o.EventObjects)
@@ -36,7 +37,8 @@ namespace ŽVPAIS_API.Data
             modelBuilder.Entity<DamageEvaluation>()
                 .HasOne(de => de.Event)
                 .WithMany(e => e.DamageEvaluations)
-                .HasForeignKey(de => de.EventId);
+                .HasForeignKey(de => de.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
