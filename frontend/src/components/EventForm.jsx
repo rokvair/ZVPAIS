@@ -33,7 +33,7 @@ const EventForm = () => {
             eventDate: event.eventDate.split('T')[0],
             description: event.description || '',
             location: event.location || '',
-            polygon: event.polygon,
+            polygon: event.polygon ? JSON.parse(event.polygon) : null,
             status: event.status || 'naujas'
           });
           if (event.objects) {
