@@ -79,7 +79,6 @@ namespace ŽVPAIS_API.Services
             @event.Description = dto.Description;
             @event.Location = dto.Location;
             @event.Coordinates = polygon;
-            @event.Status = dto.Status;
 
             await _repository.UpdateAsync(@event);
 

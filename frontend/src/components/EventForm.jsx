@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import PolygonPicker from './PolygonPicker';
 import ObjectSelector from './ObjectSelector';
+import { useAuth } from '../context/AuthContext';
 
 const EventForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const { isSpecialist } = useAuth();
 
   const [formData, setFormData] = useState({
     eventType: 'gaisas',
@@ -19,7 +21,8 @@ const EventForm = () => {
   });
   const [selectedEventObjects, setSelectedEventObjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [fetchError, setFetchError] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     if (isEditing) {
@@ -44,7 +47,7 @@ const EventForm = () => {
             })));
           }
         } catch (err) {
-          setError('Nepavyko gauti įvykio duomenų.');
+          setFetchError('Nepavyko gauti įvykio duomenų.');
           console.error(err);
         } finally {
           setLoading(false);
@@ -88,19 +91,20 @@ const EventForm = () => {
       }
       navigate('/events');
     } catch (err) {
-      setError('Klaida išsaugant įvykį.');
+      setSubmitError('Klaida išsaugant įvykį.');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div>Kraunama...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (loading && isEditing) return <div>Kraunama...</div>;
+  if (fetchError) return <div style={{ color: 'red' }}>{fetchError}</div>;
 
   return (
     <div>
       <h2>{isEditing ? 'Redaguoti įvykį' : 'Naujas įvykis'}</h2>
+      {submitError && <div style={{ color: 'red', marginBottom: '8px' }}>{submitError}</div>}
       <form onSubmit={handleSubmit}>
         <div>
           <label>Tipas:</label>
@@ -135,7 +139,7 @@ const EventForm = () => {
         <ObjectSelector
           selectedEventObjects={selectedEventObjects}
           onEventObjectsChange={setSelectedEventObjects}
-          specialistMode={isEditing}
+          specialistMode={isEditing || isSpecialist}
         />
 
         <button type="submit" disabled={loading}>

@@ -81,7 +81,7 @@ const ObjectMaterialManager = ({ objectId }) => {
       ) : (
         <ul>
           {materials.map(m => (
-            <li key={m.idObjectMaterial}>
+            <li key={m.materialId}>
               {m.materialName} –
               {m.percentage !== null && `${m.percentage}%`}
               {m.mass !== null && ` ${m.mass} t`}

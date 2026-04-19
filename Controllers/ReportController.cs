@@ -84,7 +84,6 @@ namespace ŽVPAIS_API.Controllers
                 .FirstOrDefaultAsync(r => r.IdDamageEvaluation == id);
             if (report == null) return NotFound();
 
-            report.EventId = dto.EventId;
             if (dto.Data != default) report.Data = dto.Data;
             report.ZalosDydis = dto.ZalosDydis;
             report.PiniginisDydis = dto.PiniginisDydis;

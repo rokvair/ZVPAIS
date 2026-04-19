@@ -61,6 +61,15 @@ namespace ŽVPAIS_API.Services
                 {
                     _logger.LogInformation("Auto-processing event #{Id} ({Type})", ev.IdEvent, ev.EventType);
 
+                    // Skip if a report already exists (guards against duplicate on transient DB failure)
+                    if (await db.DamageEvaluations.AnyAsync(r => r.EventId == ev.IdEvent, ct))
+                    {
+                        ev.Status = "laukia peržiūros";
+                        ev.UpdatedAt = DateTimeOffset.UtcNow;
+                        await db.SaveChangesAsync(ct);
+                        continue;
+                    }
+
                     // Step 1: run damage + pollution calculation
                     var breakdown = await calcService.CalculateBreakdownForEvent(ev.IdEvent);
 

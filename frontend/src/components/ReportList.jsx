@@ -33,7 +33,7 @@ function FitAndCapture({ polygon, onCapture }) {
     // give tiles a moment to render before capturing
     const timer = setTimeout(() => onCapture(map, polygon), 2500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [polygon, onCapture]);
   return null;
 }
 
