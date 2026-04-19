@@ -21,6 +21,7 @@ const EventForm = () => {
   });
   const [selectedEventObjects, setSelectedEventObjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(!id);
   const [fetchError, setFetchError] = useState('');
   const [submitError, setSubmitError] = useState('');
 
@@ -46,6 +47,7 @@ const EventForm = () => {
               kKat: obj.kKat ?? ''
             })));
           }
+          setDataLoaded(true);
         } catch (err) {
           setFetchError('Nepavyko gauti įvykio duomenų.');
           console.error(err);
@@ -98,7 +100,6 @@ const EventForm = () => {
     }
   };
 
-  if (loading && isEditing) return <div>Kraunama...</div>;
   if (fetchError) return <div style={{ color: 'red' }}>{fetchError}</div>;
 
   return (
@@ -132,7 +133,10 @@ const EventForm = () => {
 
         <div>
           <label>Pažymėkite paveiktą teritoriją:</label>
-          <PolygonPicker onPolygonChange={handlePolygonChange} initialPolygon={formData.polygon} />
+          {dataLoaded
+            ? <PolygonPicker onPolygonChange={handlePolygonChange} initialPolygon={formData.polygon} />
+            : <div>Kraunama žemėlapį...</div>
+          }
           {formData.polygon && <div>Teritorija pažymėta.</div>}
         </div>
 
