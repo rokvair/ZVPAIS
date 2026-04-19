@@ -53,7 +53,7 @@ namespace ŽVPAIS_API.Services
                 Description = dto.Description,
                 Location = dto.Location,
                 Coordinates = polygon,
-                Status = dto.Status
+                Status = "naujas"
             };
 
             var created = await _repository.AddAsync(@event);

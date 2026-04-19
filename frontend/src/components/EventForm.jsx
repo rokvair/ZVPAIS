@@ -128,7 +128,7 @@ const EventForm = () => {
 
         <div>
           <label>Pažymėkite paveiktą teritoriją:</label>
-          <PolygonPicker onPolygonChange={handlePolygonChange} />
+          <PolygonPicker onPolygonChange={handlePolygonChange} initialPolygon={formData.polygon} />
           {formData.polygon && <div>Teritorija pažymėta.</div>}
         </div>
 

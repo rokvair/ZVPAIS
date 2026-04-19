@@ -127,7 +127,7 @@ namespace ŽVPAIS_API.Services
             }
 
             if (string.IsNullOrEmpty(component))
-                return tN * (decimal)qN;
+                return tN * iN * (decimal)qN * kKat;
 
             return tN * iN * (decimal)qN * kKat;
         }
