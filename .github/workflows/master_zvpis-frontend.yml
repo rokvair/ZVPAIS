@@ -24,6 +24,8 @@
         - name: Build app
           run: npm run build
           working-directory: frontend
+          env:
+            VITE_API_URL: https://zvpis-backend-gmdudghme8gvb9er.uaenorth-01.azurewebsites.net/api
 
         - name: Deploy to Azure Web App
           uses: azure/webapps-deploy@v3
