@@ -62,16 +62,6 @@ namespace ŽVPAIS_API.Services
             if (eventObjects.Count != 0)
                 await _repository.SetEventObjectsAsync(created.IdEvent, eventObjects);
 
-            var damage = await _damageCalculationService.CalculateDamageForEvent(created.IdEvent);
-            await _repository.AddDamageEvaluationAsync(new DamageEvaluation
-            {
-                EventId = created.IdEvent,
-                Data = DateTime.UtcNow,
-                ZalosDydis = (double)damage,
-                PiniginisDydis = (double)damage,
-                Notes = string.Empty
-            });
-
             var result = await _repository.GetByIdAsync(created.IdEvent);
             return MapToDto(result!);
         }

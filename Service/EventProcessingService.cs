@@ -31,7 +31,14 @@ namespace ŽVPAIS_API.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                await ProcessPendingEventsAsync(stoppingToken);
+                try
+                {
+                    await ProcessPendingEventsAsync(stoppingToken);
+                }
+                catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogError(ex, "EventProcessingService encountered an error, retrying next poll.");
+                }
                 await Task.Delay(_pollingInterval, stoppingToken);
             }
         }
