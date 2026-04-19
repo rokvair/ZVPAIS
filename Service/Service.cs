@@ -1,4 +1,4 @@
-﻿using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ŽVPAIS_API.Repositories;
 using ŽVPAIS_API.Models;
@@ -8,22 +8,25 @@ namespace ŽVPAIS_API.Services
     public interface IEventService
     {
         Task<IEnumerable<EventResponseDto>> GetAllEventsAsync();
-        Task<EventResponseDto> GetEventByIdAsync(int id);
+        Task<EventResponseDto?> GetEventByIdAsync(int id);
         Task<EventResponseDto> CreateEventAsync(EventCreateDto dto);
         Task UpdateEventAsync(int id, EventCreateDto dto);
         Task DeleteEventAsync(int id);
+        Task<decimal> GetEventDamageAsync(int eventId);
     }
 
     public class EventService : IEventService
     {
         private readonly IEventRepository _repository;
-        private readonly string[] allowedEventTypes = new[] { "gaisas", "medžiagų išsiliejimas", "stichija" };
+        private readonly IDamageCalculationService _damageCalculationService;
+        private readonly string[] _allowedEventTypes = ["gaisas", "medžiagų išsiliejimas", "stichija"];
         private readonly GeoJsonReader _geoJsonReader = new();
         private readonly GeoJsonWriter _geoJsonWriter = new();
 
-        public EventService(IEventRepository repository)
+        public EventService(IEventRepository repository, IDamageCalculationService damageCalculationService)
         {
             _repository = repository;
+            _damageCalculationService = damageCalculationService;
         }
 
         public async Task<IEnumerable<EventResponseDto>> GetAllEventsAsync()
@@ -32,7 +35,7 @@ namespace ŽVPAIS_API.Services
             return events.Select(MapToDto);
         }
 
-        public async Task<EventResponseDto> GetEventByIdAsync(int id)
+        public async Task<EventResponseDto?> GetEventByIdAsync(int id)
         {
             var @event = await _repository.GetByIdAsync(id);
             return @event == null ? null : MapToDto(@event);
@@ -40,23 +43,8 @@ namespace ŽVPAIS_API.Services
 
         public async Task<EventResponseDto> CreateEventAsync(EventCreateDto dto)
         {
-            if (!allowedEventTypes.Contains(dto.EventType))
-                throw new ArgumentException($"Neteisingas įvykio tipas: {dto.EventType}. Galimi tipai: {string.Join(", ", allowedEventTypes)}");
-
-            if (string.IsNullOrWhiteSpace(dto.Polygon))
-                throw new ArgumentException("GeoJSON poligonas negali būti tuščias.");
-
-            // Konvertuoti GeoJSON string į Polygon
-            Polygon polygon;
-            try
-            {
-                var geometry = _geoJsonReader.Read<Geometry>(dto.Polygon);
-                polygon = geometry as Polygon ?? throw new ArgumentException("Pateiktas GeoJSON nėra poligonas.");
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"Neteisingas GeoJSON formatas: {ex.Message}");
-            }
+            ValidateEventType(dto.EventType);
+            var polygon = ParsePolygon(dto.Polygon);
 
             var @event = new Event
             {
@@ -65,35 +53,36 @@ namespace ŽVPAIS_API.Services
                 Description = dto.Description,
                 Location = dto.Location,
                 Coordinates = polygon,
-                Status = dto.Status,
-                CreatedAt = DateTimeOffset.UtcNow
+                Status = dto.Status
             };
 
             var created = await _repository.AddAsync(@event);
-            return MapToDto(created);
+
+            var eventObjects = dto.EventObjects ?? [];
+            if (eventObjects.Count != 0)
+                await _repository.SetEventObjectsAsync(created.IdEvent, eventObjects);
+
+            var damage = await _damageCalculationService.CalculateDamageForEvent(created.IdEvent);
+            await _repository.AddDamageEvaluationAsync(new DamageEvaluation
+            {
+                EventId = created.IdEvent,
+                Data = DateTime.UtcNow,
+                ZalosDydis = (double)damage,
+                PiniginisDydis = (double)damage,
+                Notes = string.Empty
+            });
+
+            var result = await _repository.GetByIdAsync(created.IdEvent);
+            return MapToDto(result!);
         }
 
         public async Task UpdateEventAsync(int id, EventCreateDto dto)
         {
-            var @event = await _repository.GetByIdAsync(id);
-            if (@event == null) throw new KeyNotFoundException("Event not found");
+            var @event = await _repository.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException("Įvykis nerastas.");
 
-            if (!allowedEventTypes.Contains(dto.EventType))
-                throw new ArgumentException($"Neteisingas įvykio tipas: {dto.EventType}. Galimi tipai: {string.Join(", ", allowedEventTypes)}");
-
-            if (string.IsNullOrWhiteSpace(dto.Polygon))
-                throw new ArgumentException("GeoJSON poligonas negali būti tuščias.");
-
-            Polygon polygon;
-            try
-            {
-                var geometry = _geoJsonReader.Read<Geometry>(dto.Polygon);
-                polygon = geometry as Polygon ?? throw new ArgumentException("Pateiktas GeoJSON nėra poligonas.");
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"Neteisingas GeoJSON formatas: {ex.Message}");
-            }
+            ValidateEventType(dto.EventType);
+            var polygon = ParsePolygon(dto.Polygon);
 
             @event.EventType = dto.EventType;
             @event.EventDate = dto.EventDate.ToUniversalTime();
@@ -101,14 +90,45 @@ namespace ŽVPAIS_API.Services
             @event.Location = dto.Location;
             @event.Coordinates = polygon;
             @event.Status = dto.Status;
-            @event.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _repository.UpdateAsync(@event);
+
+            var eventObjects = dto.EventObjects ?? [];
+            await _repository.SetEventObjectsAsync(id, eventObjects);
         }
 
         public async Task DeleteEventAsync(int id)
         {
             await _repository.DeleteAsync(id);
+        }
+
+        public async Task<decimal> GetEventDamageAsync(int eventId)
+        {
+            return await _damageCalculationService.CalculateDamageForEvent(eventId);
+        }
+
+        private void ValidateEventType(string eventType)
+        {
+            if (!_allowedEventTypes.Contains(eventType))
+                throw new ArgumentException($"Neteisingas tipas: {eventType}");
+        }
+
+        private Polygon ParsePolygon(string geoJson)
+        {
+            try
+            {
+                var geometry = _geoJsonReader.Read<Geometry>(geoJson);
+                return geometry as Polygon
+                    ?? throw new ArgumentException("GeoJSON turi būti poligonas.");
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Neteisingas GeoJSON formatas: {ex.Message}");
+            }
         }
 
         private EventResponseDto MapToDto(Event @event)
@@ -123,7 +143,15 @@ namespace ŽVPAIS_API.Services
                 Polygon = _geoJsonWriter.Write(@event.Coordinates),
                 Status = @event.Status,
                 CreatedAt = @event.CreatedAt,
-                UpdatedAt = @event.UpdatedAt
+                UpdatedAt = @event.UpdatedAt,
+                Objects = @event.EventObjects?.Select(eo => new EventObjectResponseDto
+                {
+                    IdObject = eo.Object.IdObject,
+                    Name = eo.Object.Name,
+                    Description = eo.Object.Description,
+                    ComponentType = eo.ComponentType,
+                    KKat = eo.KKat
+                }).ToList() ?? []
             };
         }
     }

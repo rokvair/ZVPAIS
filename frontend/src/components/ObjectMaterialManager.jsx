@@ -10,6 +10,7 @@ const ObjectMaterialManager = ({ objectId }) => {
   const [percentage, setPercentage] = useState('');
   const [mass, setMass] = useState('');
   const [volume, setVolume] = useState('');
+  const [recoveredQuantity, setRecoveredQuantity] = useState('');
 
   useEffect(() => {
     fetchObjectMaterials();
@@ -43,17 +44,19 @@ const ObjectMaterialManager = ({ objectId }) => {
         materialId: parseInt(selectedMaterialId),
         percentage: percentage ? parseFloat(percentage) : null,
         mass: mass ? parseFloat(mass) : null,
-        volume: volume ? parseFloat(volume) : null
+        volume: volume ? parseFloat(volume) : null,
+        recoveredQuantity: recoveredQuantity ? parseFloat(recoveredQuantity) : null
       });
-      // Išvalyti formą ir atnaujinti sąrašą
       setSelectedMaterialId('');
       setPercentage('');
       setMass('');
       setVolume('');
+      setRecoveredQuantity('');
       setShowAddForm(false);
       fetchObjectMaterials();
     } catch (error) {
-      alert('Klaida pridedant medžiagą');
+      const msg = error.response?.data || 'Klaida pridedant medžiagą.';
+      alert(typeof msg === 'string' ? msg : JSON.stringify(msg));
       console.error(error);
     }
   };
@@ -79,10 +82,11 @@ const ObjectMaterialManager = ({ objectId }) => {
         <ul>
           {materials.map(m => (
             <li key={m.idObjectMaterial}>
-              {m.materialName} – 
+              {m.materialName} –
               {m.percentage !== null && `${m.percentage}%`}
-              {m.mass !== null && ` ${m.mass} kg`}
-              {m.volume !== null && ` ${m.volume} l`}
+              {m.mass !== null && ` ${m.mass} t`}
+              {m.volume !== null && ` ${m.volume} m³`}
+              {m.recoveredQuantity != null && ` (susigrąžinta: ${m.recoveredQuantity} t)`}
               <button onClick={() => handleRemoveMaterial(m.materialId)} style={{ marginLeft: '10px' }}>
                 Pašalinti
               </button>
@@ -114,16 +118,23 @@ const ObjectMaterialManager = ({ objectId }) => {
           />
           <input
             type="number"
-            placeholder="Masė (kg)"
+            placeholder="Masė (t)"
             value={mass}
             onChange={e => setMass(e.target.value)}
             step="any"
           />
           <input
             type="number"
-            placeholder="Tūris (l)"
+            placeholder="Tūris (m³)"
             value={volume}
             onChange={e => setVolume(e.target.value)}
+            step="any"
+          />
+          <input
+            type="number"
+            placeholder="Susigrąžinta (t)"
+            value={recoveredQuantity}
+            onChange={e => setRecoveredQuantity(e.target.value)}
             step="any"
           />
           <button type="submit">Išsaugoti</button>

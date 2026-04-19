@@ -1,6 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ŽVPAIS_API.Models;
 
 namespace ŽVPAIS_API.Models
 {
@@ -27,9 +26,15 @@ namespace ŽVPAIS_API.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public decimal? BaseRate { get; set; }       // bazinis įkainis (Eur/kg, Eur/l)
-        public decimal? HarmfulnessFactor { get; set; }
 
-        // Navigaciniai ryšiai
+        // T_n — tariff per tonne (Lt/t or EUR/t) from Methodology Table 1 or Table 3.
+        // This already reflects the harmfulness of the substance/group.
+        [Column("base_rate")]
+        public decimal? BaseRate { get; set; }
+
+        // "standard" | "bds7" | "suspended" — triggers Q^0.8 branch for water/soil >1t
+        [Column("substance_type")]
+        [StringLength(50)]
+        public string? SubstanceType { get; set; }
     }
 }

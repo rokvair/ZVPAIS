@@ -24,73 +24,6 @@ namespace ŽVPAIS_API.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ObjectMaterial", b =>
-                {
-                    b.Property<int>("ObjectId")
-                        .HasColumnType("integer")
-                        .HasColumnName("object_id");
-
-                    b.Property<int>("MaterialId")
-                        .HasColumnType("integer")
-                        .HasColumnName("material_id");
-
-                    b.Property<int>("IdObjectMaterial")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_object_material");
-
-                    b.Property<double?>("Mass")
-                        .HasColumnType("double precision")
-                        .HasColumnName("mass");
-
-                    b.Property<double?>("Percentage")
-                        .HasColumnType("double precision")
-                        .HasColumnName("percentage");
-
-                    b.Property<double?>("Volume")
-                        .HasColumnType("double precision")
-                        .HasColumnName("volume");
-
-                    b.HasKey("ObjectId", "MaterialId");
-
-                    b.HasIndex("MaterialId");
-
-                    b.ToTable("object_materials");
-                });
-
-            modelBuilder.Entity("ŽVPAIS_API.Models.CalculationMethod", b =>
-                {
-                    b.Property<int>("IdCalculationMethod")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_calculation_method");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCalculationMethod"));
-
-                    b.Property<string>("AssignedObjects")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("assigned_objects");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("name");
-
-                    b.HasKey("IdCalculationMethod");
-
-                    b.ToTable("calculation_methods");
-                });
-
             modelBuilder.Entity("ŽVPAIS_API.Models.DamageEvaluation", b =>
                 {
                     b.Property<int>("IdDamageEvaluation")
@@ -99,10 +32,6 @@ namespace ŽVPAIS_API.Migrations
                         .HasColumnName("id_damage_evaluation");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdDamageEvaluation"));
-
-                    b.Property<int?>("CalculationMethodId")
-                        .HasColumnType("integer")
-                        .HasColumnName("fk_calculation_method");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -129,8 +58,6 @@ namespace ŽVPAIS_API.Migrations
                         .HasColumnName("zalos_dydis");
 
                     b.HasKey("IdDamageEvaluation");
-
-                    b.HasIndex("CalculationMethodId");
 
                     b.HasIndex("EventId");
 
@@ -211,10 +138,6 @@ namespace ŽVPAIS_API.Migrations
                         .HasColumnType("text")
                         .HasColumnName("location");
 
-                    b.Property<decimal?>("SensitivityFactor")
-                        .HasColumnType("numeric")
-                        .HasColumnName("sensitivity_factor");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -231,19 +154,67 @@ namespace ŽVPAIS_API.Migrations
 
             modelBuilder.Entity("ŽVPAIS_API.Models.EventObject", b =>
                 {
+                    b.Property<int>("IdEventObject")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_event_object");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEventObject"));
+
+                    b.Property<string>("ComponentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("component_type");
+
                     b.Property<int>("EventId")
                         .HasColumnType("integer")
                         .HasColumnName("event_id");
+
+                    b.Property<decimal?>("KKat")
+                        .HasColumnType("numeric")
+                        .HasColumnName("k_kat");
 
                     b.Property<int>("ObjectId")
                         .HasColumnType("integer")
                         .HasColumnName("object_id");
 
-                    b.HasKey("EventId", "ObjectId");
+                    b.HasKey("IdEventObject");
+
+                    b.HasIndex("EventId");
 
                     b.HasIndex("ObjectId");
 
                     b.ToTable("event_objects");
+                });
+
+            modelBuilder.Entity("ŽVPAIS_API.Models.IndexingCoefficient", b =>
+                {
+                    b.Property<int>("IdIndexingCoefficient")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_indexing_coefficient");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdIndexingCoefficient"));
+
+                    b.Property<decimal>("Coefficient")
+                        .HasColumnType("numeric")
+                        .HasColumnName("coefficient");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Quarter")
+                        .HasColumnType("integer")
+                        .HasColumnName("quarter");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer")
+                        .HasColumnName("year");
+
+                    b.HasKey("IdIndexingCoefficient");
+
+                    b.ToTable("indexing_coefficients");
                 });
 
             modelBuilder.Entity("ŽVPAIS_API.Models.Material", b =>
@@ -256,7 +227,8 @@ namespace ŽVPAIS_API.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdMaterial"));
 
                     b.Property<decimal?>("BaseRate")
-                        .HasColumnType("numeric");
+                        .HasColumnType("numeric")
+                        .HasColumnName("base_rate");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -267,14 +239,16 @@ namespace ŽVPAIS_API.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<decimal?>("HarmfulnessFactor")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
+
+                    b.Property<string>("SubstanceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("substance_type");
 
                     b.Property<double?>("ToxicityFactor")
                         .HasColumnType("double precision")
@@ -289,6 +263,43 @@ namespace ŽVPAIS_API.Migrations
                     b.HasKey("IdMaterial");
 
                     b.ToTable("materials");
+                });
+
+            modelBuilder.Entity("ŽVPAIS_API.Models.ObjectMaterial", b =>
+                {
+                    b.Property<int>("ObjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("object_id");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("integer")
+                        .HasColumnName("material_id");
+
+                    b.Property<int>("IdObjectMaterial")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_object_material");
+
+                    b.Property<double?>("Mass")
+                        .HasColumnType("double precision")
+                        .HasColumnName("mass");
+
+                    b.Property<double?>("Percentage")
+                        .HasColumnType("double precision")
+                        .HasColumnName("percentage");
+
+                    b.Property<double?>("RecoveredQuantity")
+                        .HasColumnType("double precision")
+                        .HasColumnName("recovered_quantity");
+
+                    b.Property<double?>("Volume")
+                        .HasColumnType("double precision")
+                        .HasColumnName("volume");
+
+                    b.HasKey("ObjectId", "MaterialId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.ToTable("object_materials");
                 });
 
             modelBuilder.Entity("ŽVPAIS_API.Models.Specialist", b =>
@@ -344,38 +355,13 @@ namespace ŽVPAIS_API.Migrations
                     b.ToTable("users");
                 });
 
-            modelBuilder.Entity("ObjectMaterial", b =>
-                {
-                    b.HasOne("ŽVPAIS_API.Models.Material", "Material")
-                        .WithMany()
-                        .HasForeignKey("MaterialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ŽVPAIS_API.Models.EnvironmentObject", "EnvironmentObject")
-                        .WithMany("ObjectMaterials")
-                        .HasForeignKey("ObjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EnvironmentObject");
-
-                    b.Navigation("Material");
-                });
-
             modelBuilder.Entity("ŽVPAIS_API.Models.DamageEvaluation", b =>
                 {
-                    b.HasOne("ŽVPAIS_API.Models.CalculationMethod", "CalculationMethod")
-                        .WithMany("DamageEvaluations")
-                        .HasForeignKey("CalculationMethodId");
-
                     b.HasOne("ŽVPAIS_API.Models.Event", "Event")
                         .WithMany("DamageEvaluations")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CalculationMethod");
 
                     b.Navigation("Event");
                 });
@@ -399,6 +385,25 @@ namespace ŽVPAIS_API.Migrations
                     b.Navigation("Object");
                 });
 
+            modelBuilder.Entity("ŽVPAIS_API.Models.ObjectMaterial", b =>
+                {
+                    b.HasOne("ŽVPAIS_API.Models.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ŽVPAIS_API.Models.EnvironmentObject", "EnvironmentObject")
+                        .WithMany("ObjectMaterials")
+                        .HasForeignKey("ObjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnvironmentObject");
+
+                    b.Navigation("Material");
+                });
+
             modelBuilder.Entity("ŽVPAIS_API.Models.Specialist", b =>
                 {
                     b.HasOne("ŽVPAIS_API.Models.User", "User")
@@ -408,11 +413,6 @@ namespace ŽVPAIS_API.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ŽVPAIS_API.Models.CalculationMethod", b =>
-                {
-                    b.Navigation("DamageEvaluations");
                 });
 
             modelBuilder.Entity("ŽVPAIS_API.Models.EnvironmentObject", b =>

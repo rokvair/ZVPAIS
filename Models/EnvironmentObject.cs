@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ŽVPAIS_API.Models
@@ -16,6 +16,7 @@ namespace ŽVPAIS_API.Models
 
         [Column("description")]
         public string Description { get; set; }
+
         [Column("total_mass")]
         public double? TotalMass { get; set; }
 

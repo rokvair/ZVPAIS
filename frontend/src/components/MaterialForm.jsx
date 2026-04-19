@@ -12,8 +12,8 @@ const MaterialForm = () => {
     description: '',
     toxicityFactor: '',
     unit: '',
-    baseRate: '',          // new field
-    harmfulnessFactor: ''  // new field
+    baseRate: '',
+    substanceType: 'standard'
   });
   const [loading, setLoading] = useState(false);
 
@@ -28,8 +28,8 @@ const MaterialForm = () => {
             description: m.description || '',
             toxicityFactor: m.toxicityFactor ?? '',
             unit: m.unit || '',
-            baseRate: m.baseRate ?? '',          // new
-            harmfulnessFactor: m.harmfulnessFactor ?? '' // new
+            baseRate: m.baseRate ?? '',
+            substanceType: m.substanceType || 'standard'
           });
         } catch (error) {
           console.error(error);
@@ -40,10 +40,7 @@ const MaterialForm = () => {
   }, [id, isEditing]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -56,7 +53,7 @@ const MaterialForm = () => {
         toxicityFactor: formData.toxicityFactor ? parseFloat(formData.toxicityFactor) : null,
         unit: formData.unit,
         baseRate: formData.baseRate ? parseFloat(formData.baseRate) : null,
-        harmfulnessFactor: formData.harmfulnessFactor ? parseFloat(formData.harmfulnessFactor) : null
+        substanceType: formData.substanceType || 'standard'
       };
       if (isEditing) {
         await api.put(`/materials/${id}`, payload);
@@ -92,14 +89,17 @@ const MaterialForm = () => {
           <label>Vienetas:</label>
           <input name="unit" value={formData.unit} onChange={handleChange} />
         </div>
-        {/* New fields */}
         <div>
-          <label>Bazinis įkainis (Eur/kg):</label>
+          <label>Bazinis tarifas T_n (EUR/t):</label>
           <input type="number" step="0.01" name="baseRate" value={formData.baseRate} onChange={handleChange} />
         </div>
         <div>
-          <label>Kenksmingumo koeficientas:</label>
-          <input type="number" step="0.01" name="harmfulnessFactor" value={formData.harmfulnessFactor} onChange={handleChange} />
+          <label>Medžiagos tipas:</label>
+          <select name="substanceType" value={formData.substanceType} onChange={handleChange}>
+            <option value="standard">Standartinis</option>
+            <option value="bds7">BDS₇</option>
+            <option value="suspended">Suspenduotos medžiagos</option>
+          </select>
         </div>
         <button type="submit" disabled={loading}>{loading ? 'Saugoma...' : 'Išsaugoti'}</button>
         <button type="button" onClick={() => navigate('/materials')}>Atšaukti</button>

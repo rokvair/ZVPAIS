@@ -17,8 +17,7 @@ const EventForm = () => {
     polygon: null,
     status: 'naujas'
   });
-  const [selectedObjectIds, setSelectedObjectIds] = useState([]);
-  const [sensitivityFactor, setSensitivityFactor] = useState('1.0');
+  const [selectedEventObjects, setSelectedEventObjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,13 +37,11 @@ const EventForm = () => {
             status: event.status || 'naujas'
           });
           if (event.objects) {
-            setSelectedObjectIds(event.objects.map(obj => obj.idObject));
-          }
-          // Load sensitivity factor if exists, default to '1.0'
-          if (event.sensitivityFactor !== undefined && event.sensitivityFactor !== null) {
-            setSensitivityFactor(event.sensitivityFactor.toString());
-          } else {
-            setSensitivityFactor('1.0');
+            setSelectedEventObjects(event.objects.map(obj => ({
+              objectId: obj.idObject,
+              componentType: obj.componentType || '',
+              kKat: obj.kKat ?? ''
+            })));
           }
         } catch (err) {
           setError('Nepavyko gauti įvykio duomenų.');
@@ -58,17 +55,11 @@ const EventForm = () => {
   }, [id, isEditing]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handlePolygonChange = (polygon) => {
-    setFormData({
-      ...formData,
-      polygon: polygon
-    });
+    setFormData({ ...formData, polygon });
   };
 
   const handleSubmit = async (e) => {
@@ -83,9 +74,12 @@ const EventForm = () => {
       const payload = {
         ...formData,
         polygon: JSON.stringify(formData.polygon),
-        objectIds: selectedObjectIds.map(id => Number(id)),
-        materials: [], // required empty list
-        sensitivityFactor: parseFloat(sensitivityFactor) // add sensitivity factor
+        eventObjects: selectedEventObjects.map(eo => ({
+          objectId: Number(eo.objectId),
+          componentType: eo.componentType || null,
+          kKat: eo.kKat !== '' ? parseFloat(eo.kKat) : null
+        })),
+        materials: []
       };
       if (isEditing) {
         await api.put(`/events/${id}`, payload);
@@ -133,33 +127,15 @@ const EventForm = () => {
         </div>
 
         <div>
-          <label>Statusas:</label>
-          <select name="status" value={formData.status} onChange={handleChange}>
-            <option value="naujas">Naujas</option>
-            <option value="tikrinamas">Tikrinamas</option>
-            <option value="patvirtintas">Patvirtintas</option>
-            <option value="atmestas">Atmestas</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Teritorijos jautrumas:</label>
-          <select value={sensitivityFactor} onChange={(e) => setSensitivityFactor(e.target.value)}>
-            <option value="1.0">Įprasta</option>
-            <option value="1.5">Jautri</option>
-            <option value="2.0">Ypač jautri</option>
-          </select>
-        </div>
-
-        <div>
           <label>Pažymėkite paveiktą teritoriją:</label>
           <PolygonPicker onPolygonChange={handlePolygonChange} />
           {formData.polygon && <div>Teritorija pažymėta.</div>}
         </div>
 
-        <ObjectSelector 
-          selectedObjectIds={selectedObjectIds} 
-          onObjectIdsChange={setSelectedObjectIds} 
+        <ObjectSelector
+          selectedEventObjects={selectedEventObjects}
+          onEventObjectsChange={setSelectedEventObjects}
+          specialistMode={isEditing}
         />
 
         <button type="submit" disabled={loading}>

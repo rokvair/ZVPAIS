@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ŽVPAIS_API.Data;
-using ŽVPAIS_API.Models;
 
-namespace Zpvis.Api.Controllers
+namespace ŽVPAIS_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Specialist")]
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -17,17 +18,25 @@ namespace Zpvis.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
         {
-            // Grąžiname be slaptažodžių (saugumo sumetimais)
             var users = await _context.Users
-                .Select(u => new { u.IdUser, u.Email, u.CreatedAt })
+                .Include(u => u.Specialist)
+                .Select(u => new UserResponseDto
+                {
+                    IdUser = u.IdUser,
+                    Email = u.Email,
+                    CreatedAt = u.CreatedAt,
+                    SpecialistName = u.Specialist != null ? u.Specialist.Name : null,
+                    FieldOfExpertise = u.Specialist != null ? u.Specialist.FieldOfExpertise : null
+                })
                 .ToListAsync();
+
             return Ok(users);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserResponseDto>> GetUser(int id)
         {
             var user = await _context.Users
                 .Include(u => u.Specialist)
@@ -36,13 +45,14 @@ namespace Zpvis.Api.Controllers
             if (user == null)
                 return NotFound();
 
-            // Paslepiame slaptažodį
-            user.Password = null;
-
-            return Ok(user);
+            return Ok(new UserResponseDto
+            {
+                IdUser = user.IdUser,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt,
+                SpecialistName = user.Specialist?.Name,
+                FieldOfExpertise = user.Specialist?.FieldOfExpertise
+            });
         }
-
-        // POST būtų registracija – čia galima pridėti
-        // DELETE – tik administratoriams
     }
 }

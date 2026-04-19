@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "r07BqgFJbQE=",
+  "dgSpecHash": "78RajCUah/U=",
   "success": true,
   "projectFilePath": "C:\\Users\\Rokas\\Desktop\\PP_ir_BBP\\ŽVPAIS_API\\ŽVPAIS_API\\ŽVPAIS_API.csproj",
   "expectedPackageFiles": [
@@ -46,6 +46,7 @@
     "C:\\Users\\Rokas\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\8.0.10\\npgsql.entityframeworkcore.postgresql.8.0.10.nupkg.sha512",
     "C:\\Users\\Rokas\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql.nettopologysuite\\8.0.10\\npgsql.entityframeworkcore.postgresql.nettopologysuite.8.0.10.nupkg.sha512",
     "C:\\Users\\Rokas\\.nuget\\packages\\npgsql.nettopologysuite\\8.0.5\\npgsql.nettopologysuite.8.0.5.nupkg.sha512",
+    "C:\\Users\\Rokas\\.nuget\\packages\\questpdf\\2025.1.0\\questpdf.2025.1.0.nupkg.sha512",
     "C:\\Users\\Rokas\\.nuget\\packages\\swashbuckle.aspnetcore\\6.6.2\\swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
     "C:\\Users\\Rokas\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.6.2\\swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
     "C:\\Users\\Rokas\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.6.2\\swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
@@ -66,5 +67,18 @@
     "C:\\Users\\Rokas\\.nuget\\packages\\system.text.encoding.codepages\\6.0.0\\system.text.encoding.codepages.6.0.0.nupkg.sha512",
     "C:\\Users\\Rokas\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "ŽVPAIS_API depends on QuestPDF (>= 2024.12.4) but QuestPDF 2024.12.4 was not found. QuestPDF 2025.1.0 was resolved instead.",
+      "projectPath": "C:\\Users\\Rokas\\Desktop\\PP_ir_BBP\\ŽVPAIS_API\\ŽVPAIS_API\\ŽVPAIS_API.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Rokas\\Desktop\\PP_ir_BBP\\ŽVPAIS_API\\ŽVPAIS_API\\ŽVPAIS_API.csproj",
+      "libraryId": "QuestPDF",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

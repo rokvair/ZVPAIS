@@ -1,9 +1,35 @@
-body { font-family: Arial, sans-serif; margin: 20px; }
-nav ul { list-style: none; padding: 0; display: flex; gap: 20px; background: #f0f0f0; padding: 10px; }
-nav a { text-decoration: none; color: #333; font-weight: bold; }
-nav a:hover { color: #007bff; }
+body { font-family: Arial, sans-serif; margin: 0; }
+nav ul { list-style: none; padding: 10px 20px; margin: 0; display: flex; gap: 20px; align-items: center; background: #2c3e50; }
+nav a { text-decoration: none; color: #ecf0f1; font-weight: bold; }
+nav a:hover { color: #3498db; }
+.nav-user { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.nav-role { color: #f39c12; font-weight: bold; font-size: 0.85em; }
+.nav-email { color: #bdc3c7; font-size: 0.9em; }
+.nav-logout { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
+.nav-logout:hover { background: #c0392b; }
+.page-content { padding: 20px; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 button, .button-like { padding: 5px 10px; margin-right: 5px; cursor: pointer; }
 form div { margin-bottom: 10px; }
 label { display: inline-block; width: 150px; font-weight: bold; }
+
+/* Auth pages */
+.auth-container { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
+.auth-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 32px; width: 100%; max-width: 400px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.auth-card h2 { margin-top: 0; margin-bottom: 24px; color: #2c3e50; text-align: center; }
+.auth-card form div { margin-bottom: 14px; }
+.auth-card label { display: block; width: auto; margin-bottom: 4px; color: #555; }
+.auth-card input[type="email"],
+.auth-card input[type="password"],
+.auth-card input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em; }
+.auth-card input:focus { outline: none; border-color: #3498db; }
+.auth-checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.auth-checkbox-row label { width: auto; margin: 0; }
+.auth-btn { width: 100%; padding: 10px; background: #2c3e50; color: white; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; margin-top: 8px; }
+.auth-btn:hover:not(:disabled) { background: #3498db; }
+.auth-btn:disabled { opacity: 0.6; cursor: default; }
+.auth-error { background: #fdecea; color: #c0392b; border: 1px solid #e74c3c; border-radius: 4px; padding: 10px; margin-bottom: 16px; font-size: 0.9em; }
+.auth-link { text-align: center; margin-top: 16px; color: #666; font-size: 0.9em; }
+.auth-link a { color: #3498db; text-decoration: none; font-weight: bold; }
+.auth-link a:hover { text-decoration: underline; }

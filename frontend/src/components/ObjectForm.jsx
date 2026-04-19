@@ -13,22 +13,18 @@ const ObjectForm = () => {
   const [totalMass, setTotalMass] = useState('');
   const [totalVolume, setTotalVolume] = useState('');
   const [loading, setLoading] = useState(false);
+  const [savedId, setSavedId] = useState(isEditing ? parseInt(id) : null);
 
   useEffect(() => {
     if (isEditing) {
-      const fetchObject = async () => {
-        try {
-          const response = await api.get(`/environmentobjects/${id}`);
-          const obj = response.data;
-          setName(obj.name || '');
-          setDescription(obj.description || '');
-          setTotalMass(obj.totalMass ?? '');
-          setTotalVolume(obj.totalVolume ?? '');
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      fetchObject();
+      api.get(`/environmentobjects/${id}`)
+        .then(res => {
+          setName(res.data.name || '');
+          setDescription(res.data.description || '');
+          setTotalMass(res.data.totalMass != null ? String(res.data.totalMass) : '');
+          setTotalVolume(res.data.totalVolume != null ? String(res.data.totalVolume) : '');
+        })
+        .catch(console.error);
     }
   }, [id, isEditing]);
 
@@ -39,15 +35,17 @@ const ObjectForm = () => {
       const payload = {
         name,
         description,
-        totalMass: totalMass ? parseFloat(totalMass) : null,
-        totalVolume: totalVolume ? parseFloat(totalVolume) : null
+        totalMass: totalMass !== '' ? parseFloat(totalMass) : null,
+        totalVolume: totalVolume !== '' ? parseFloat(totalVolume) : null
       };
       if (isEditing) {
         await api.put(`/environmentobjects/${id}`, payload);
+        setSavedId(parseInt(id));
       } else {
-        await api.post('/environmentobjects', payload);
+        const res = await api.post('/environmentobjects', payload);
+        const newId = res.data.idObject;
+        setSavedId(newId);
       }
-      navigate('/objects');
     } catch (error) {
       alert('Klaida išsaugant objektą.');
       console.error(error);
@@ -62,42 +60,62 @@ const ObjectForm = () => {
       <form onSubmit={handleSubmit}>
         <div>
           <label>Pavadinimas:</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            style={{ marginLeft: '8px', width: '300px' }}
+          />
         </div>
-        <div>
+        <div style={{ marginTop: '8px' }}>
           <label>Aprašymas:</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="3" />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows="3"
+            style={{ marginLeft: '8px', width: '300px', display: 'inline-block', verticalAlign: 'top' }}
+          />
         </div>
-        <div>
-          <label>Bendra masė (kg):</label>
+        <div style={{ marginTop: '8px', color: '#666', fontSize: '0.85em' }}>
+          Užpildykite, jei medžiagos nurodomos procentais:
+        </div>
+        <div style={{ marginTop: '4px' }}>
+          <label>Bendras svoris (t):</label>
           <input
             type="number"
             step="any"
+            min="0"
             value={totalMass}
-            onChange={(e) => setTotalMass(e.target.value)}
-            placeholder="Palikite tuščią, jei netaikoma"
+            onChange={e => setTotalMass(e.target.value)}
+            placeholder="pvz. 5.0"
+            style={{ marginLeft: '8px', width: '120px' }}
           />
-        </div>
-        <div>
-          <label>Bendras tūris (l):</label>
+          <label style={{ marginLeft: '16px' }}>Bendras tūris (m³):</label>
           <input
             type="number"
             step="any"
+            min="0"
             value={totalVolume}
-            onChange={(e) => setTotalVolume(e.target.value)}
-            placeholder="Palikite tuščią, jei netaikoma"
+            onChange={e => setTotalVolume(e.target.value)}
+            placeholder="pvz. 5.0"
+            style={{ marginLeft: '8px', width: '120px' }}
           />
         </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Saugoma...' : (isEditing ? 'Atnaujinti' : 'Sukurti')}
-        </button>
-        <button type="button" onClick={() => navigate('/objects')}>Atšaukti</button>
+
+        <div style={{ marginTop: '12px' }}>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Saugoma...' : (isEditing ? 'Atnaujinti' : 'Sukurti ir pridėti medžiagas')}
+          </button>
+          <button type="button" onClick={() => navigate('/objects')} style={{ marginLeft: '8px' }}>
+            {savedId ? 'Grįžti į sąrašą' : 'Atšaukti'}
+          </button>
+        </div>
       </form>
 
-      {isEditing && (
+      {savedId && (
         <div style={{ marginTop: '30px', borderTop: '1px solid #ccc', paddingTop: '20px' }}>
           <h3>Objekto medžiagos</h3>
-          <ObjectMaterialManager objectId={parseInt(id)} />
+          <ObjectMaterialManager objectId={savedId} />
         </div>
       )}
     </div>

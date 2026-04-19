@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const MaterialList = () => {
+  const { isSpecialist } = useAuth();
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,8 +44,9 @@ const MaterialList = () => {
           <tr>
             <th>ID</th>
             <th>Pavadinimas</th>
-            <th>Aprašymas</th>
-            <th>Toksiškumo faktorius</th>
+            <th>Tipas</th>
+            <th>T_n (€/t)</th>
+            <th>Toksiškumo f.</th>
             <th>Vienetas</th>
             <th>Veiksmai</th>
           </tr>
@@ -53,14 +56,19 @@ const MaterialList = () => {
             <tr key={m.idMaterial}>
               <td>{m.idMaterial}</td>
               <td>{m.name}</td>
-              <td>{m.description}</td>
-              <td>{m.toxicityFactor}</td>
+              <td>{substanceLabel(m.substanceType)}</td>
+              <td>{m.baseRate ?? '—'}</td>
+              <td>{m.toxicityFactor ?? '—'}</td>
               <td>{m.unit}</td>
               <td>
-                <Link to={`/materials/edit/${m.idMaterial}`}>Redaguoti</Link>
-                <button onClick={() => handleDelete(m.idMaterial)} style={{ marginLeft: '8px' }}>
-                  Trinti
-                </button>
+                {isSpecialist && (
+                  <>
+                    <Link to={`/materials/edit/${m.idMaterial}`}>Redaguoti</Link>
+                    <button onClick={() => handleDelete(m.idMaterial)} style={{ marginLeft: '8px' }}>
+                      Trinti
+                    </button>
+                  </>
+                )}
               </td>
             </tr>
           ))}
@@ -69,5 +77,7 @@ const MaterialList = () => {
     </div>
   );
 };
+
+const substanceLabel = (t) => ({ standard: 'Standartinis', bds7: 'BDS₇', suspended: 'Suspenduotos' }[t] || '—');
 
 export default MaterialList;

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const EventList = () => {
+  const { isSpecialist } = useAuth();
   const [events, setEvents] = useState([]);
   const [damages, setDamages] = useState({});
   const [loading, setLoading] = useState(true);
@@ -95,10 +97,14 @@ const EventList = () => {
                   : 'Skaičiuojama...'}
               </td>
               <td>
-                <Link to={`/events/edit/${event.idEvent}`}>Redaguoti</Link>
-                <button onClick={() => handleDelete(event.idEvent)} style={{ marginLeft: '8px' }}>
-                  Trinti
-                </button>
+                {isSpecialist && (
+                  <>
+                    <Link to={`/events/edit/${event.idEvent}`}>Redaguoti</Link>
+                    <button onClick={() => handleDelete(event.idEvent)} style={{ marginLeft: '8px' }}>
+                      Trinti
+                    </button>
+                  </>
+                )}
               </td>
             </tr>
           ))}

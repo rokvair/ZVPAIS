@@ -62,42 +62,45 @@ const EventMap = () => {
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   // Konvertuojame įvykius į GeoJSON FeatureCollection
+  const approved = events.filter(e => e.status === 'patvirtintas' && e.polygon);
+
   const geoJsonData = {
     type: 'FeatureCollection',
-    features: events.map(event => ({
-      type: 'Feature',
-      geometry: JSON.parse(event.polygon), // event.polygon yra GeoJSON string
-      properties: {
-        id: event.idEvent,
-        eventType: event.eventType,
-        eventDate: new Date(event.eventDate).toLocaleString('lt-LT'),
-        description: event.description,
-        location: event.location,
-        status: event.status
-      }
-    }))
+    features: approved.map(event => {
+      try {
+        return {
+          type: 'Feature',
+          geometry: JSON.parse(event.polygon),
+          properties: {
+            id: event.idEvent,
+            eventType: event.eventType,
+            eventDate: new Date(event.eventDate).toLocaleDateString('lt-LT'),
+            location: event.location,
+          }
+        };
+      } catch { return null; }
+    }).filter(Boolean)
   };
 
   // Funkcija, kuri sukuria popup'ą kiekvienam elementui
   const onEachFeature = (feature, layer) => {
     if (feature.properties) {
-      const props = feature.properties;
-      const popupContent = `
-        <div>
-          <strong>Tipas:</strong> ${props.eventType}<br/>
-          <strong>Data:</strong> ${props.eventDate}<br/>
-          <strong>Vieta:</strong> ${props.location || 'Nenurodyta'}<br/>
-          <strong>Statusas:</strong> ${props.status}<br/>
-          ${props.description ? `<strong>Aprašymas:</strong> ${props.description}` : ''}
+      const { eventType, eventDate, location, id } = feature.properties;
+      layer.bindPopup(`
+        <div style="min-width:160px">
+          <strong>${eventType}</strong><br/>
+          ${eventDate}<br/>
+          ${location ? `${location}<br/>` : ''}
+          <a href="/events/${id}/calculation" style="font-size:0.9em">Žiūrėti skaičiavimą →</a>
         </div>
-      `;
-      layer.bindPopup(popupContent);
+      `);
     }
   };
 
   return (
     <div>
-      <h2>Įvykių žemėlapis</h2>
+      <h2>Patvirtintų įvykių žemėlapis</h2>
+      <p style={{ color: '#666', marginTop: 0 }}>Rodomi tik patvirtinti ({approved.length}) įvykiai.</p>
       <MapContainer
         center={[55.0, 24.0]}
         zoom={7}

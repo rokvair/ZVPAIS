@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ŽVPAIS_API.Data;
 using ŽVPAIS_API;
@@ -8,6 +9,7 @@ namespace Zpvis.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MaterialsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -28,8 +30,8 @@ namespace Zpvis.Api.Controllers
                 Description = m.Description,
                 ToxicityFactor = m.ToxicityFactor,
                 Unit = m.Unit,
-                BaseRate = m.BaseRate,              // added
-                HarmfulnessFactor = m.HarmfulnessFactor, // added
+                BaseRate = m.BaseRate,
+                SubstanceType = m.SubstanceType,
                 CreatedAt = m.CreatedAt
             }).ToList();
 
@@ -51,7 +53,7 @@ namespace Zpvis.Api.Controllers
                 ToxicityFactor = material.ToxicityFactor,
                 Unit = material.Unit,
                 BaseRate = material.BaseRate,
-                HarmfulnessFactor = material.HarmfulnessFactor,
+                SubstanceType = material.SubstanceType,
                 CreatedAt = material.CreatedAt
             };
 
@@ -67,8 +69,8 @@ namespace Zpvis.Api.Controllers
                 Description = dto.Description,
                 ToxicityFactor = dto.ToxicityFactor,
                 Unit = dto.Unit,
-                BaseRate = dto.BaseRate,              // added
-                HarmfulnessFactor = dto.HarmfulnessFactor, // added
+                BaseRate = dto.BaseRate,
+                SubstanceType = dto.SubstanceType,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -83,7 +85,7 @@ namespace Zpvis.Api.Controllers
                 ToxicityFactor = material.ToxicityFactor,
                 Unit = material.Unit,
                 BaseRate = material.BaseRate,
-                HarmfulnessFactor = material.HarmfulnessFactor,
+                SubstanceType = material.SubstanceType,
                 CreatedAt = material.CreatedAt
             };
 
@@ -91,6 +93,7 @@ namespace Zpvis.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Specialist")]
         public async Task<IActionResult> UpdateMaterial(int id, MaterialCreateDto dto)
         {
             var material = await _context.Materials.FindAsync(id);
@@ -101,8 +104,8 @@ namespace Zpvis.Api.Controllers
             material.Description = dto.Description;
             material.ToxicityFactor = dto.ToxicityFactor;
             material.Unit = dto.Unit;
-            material.BaseRate = dto.BaseRate;              // added
-            material.HarmfulnessFactor = dto.HarmfulnessFactor; // added
+            material.BaseRate = dto.BaseRate;
+            material.SubstanceType = dto.SubstanceType;
 
             await _context.SaveChangesAsync();
 
@@ -110,6 +113,7 @@ namespace Zpvis.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Specialist")]
         public async Task<IActionResult> DeleteMaterial(int id)
         {
             var material = await _context.Materials.FindAsync(id);

@@ -28,9 +28,6 @@ namespace ŽVPAIS_API.Models
 
         [Column("status")]
         public string Status { get; set; }
-        [Column("sensitivity_factor")]
-        public decimal? SensitivityFactor { get; set; }   // 1.0, 1.5, 2.0 ir pan.
-
         [Column("created_at")]
         public DateTimeOffset CreatedAt { get; set; } = DateTime.UtcNow;
 

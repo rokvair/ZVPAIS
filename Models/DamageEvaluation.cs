@@ -22,20 +22,13 @@ namespace ŽVPAIS_API.Models
         [Column("fk_event")]
         public int EventId { get; set; }
 
-        [Column("fk_calculation_method")]
-        public int? CalculationMethodId { get; set; }
-
         [Column("notes")]
         public string? Notes { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigaciniai ryšiai
         [ForeignKey(nameof(EventId))]
         public Event Event { get; set; }
-
-        [ForeignKey(nameof(CalculationMethodId))]
-        public CalculationMethod CalculationMethod { get; set; }
     }
 }

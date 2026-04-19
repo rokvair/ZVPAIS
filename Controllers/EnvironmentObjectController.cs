@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ŽVPAIS_API.Data;
 using ŽVPAIS_API.Models;
@@ -7,6 +8,7 @@ namespace ŽVPAIS_API.Controllers
 {
     [Route("api/environmentobjects")]
     [ApiController]
+    [Authorize]
     public class EnvironmentObjectController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -20,32 +22,44 @@ namespace ŽVPAIS_API.Controllers
         public async Task<ActionResult<IEnumerable<ObjectDto>>> GetObjects()
         {
             var objects = await _context.Objects
-                .Select(o => new ObjectDto
-                {
-                    IdObject = o.IdObject,
-                    Name = o.Name,
-                    Description = o.Description
-                })
+                .Include(o => o.ObjectMaterials)
+                    .ThenInclude(om => om.Material)
                 .ToListAsync();
 
-            return Ok(objects);
+            return Ok(objects.Select(MapToDto).ToList());
         }
-        // GET: api/AplinkosObjektai/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ObjectDto>> GetObject(int id)
         {
-            var obj = await _context.Objects.FindAsync(id);
+            var obj = await _context.Objects
+                .Include(o => o.ObjectMaterials)
+                    .ThenInclude(om => om.Material)
+                .FirstOrDefaultAsync(o => o.IdObject == id);
             if (obj == null) return NotFound();
 
-            return Ok(new ObjectDto
-            {
-                IdObject = obj.IdObject,
-                Name = obj.Name,
-                Description = obj.Description
-            });
+            return Ok(MapToDto(obj));
         }
 
-        // POST: api/AplinkosObjektai
+        private static ObjectDto MapToDto(EnvironmentObject o) => new()
+        {
+            IdObject = o.IdObject,
+            Name = o.Name,
+            Description = o.Description,
+            TotalMass = o.TotalMass,
+            TotalVolume = o.TotalVolume,
+            Materials = o.ObjectMaterials?.Select(om => new ObjectMaterialDto
+            {
+                IdObjectMaterial = om.IdObjectMaterial,
+                MaterialId = om.MaterialId,
+                MaterialName = om.Material?.Name,
+                Percentage = om.Percentage,
+                Mass = om.Mass,
+                Volume = om.Volume,
+                RecoveredQuantity = om.RecoveredQuantity
+            }).ToList() ?? []
+        };
+
         [HttpPost]
         public async Task<ActionResult<ObjectDto>> CreateObject(ObjectCreateDto dto)
         {
@@ -71,8 +85,8 @@ namespace ŽVPAIS_API.Controllers
             return CreatedAtAction(nameof(GetObject), new { id = obj.IdObject }, response);
         }
 
-        // PUT: api/AplinkosObjektai/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Specialist")]
         public async Task<IActionResult> UpdateObject(int id, ObjectCreateDto dto)
         {
             var obj = await _context.Objects.FindAsync(id);
@@ -87,8 +101,8 @@ namespace ŽVPAIS_API.Controllers
             return NoContent();
         }
 
-        // DELETE: api/AplinkosObjektai/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Specialist")]
         public async Task<IActionResult> DeleteObject(int id)
         {
             var obj = await _context.Objects.FindAsync(id);
@@ -99,8 +113,7 @@ namespace ŽVPAIS_API.Controllers
 
             return NoContent();
         }
-        // Jei reikia, pridėkite POST, PUT, DELETE metodus objektų valdymui
-        // GET: api/environmentobjects/{id}/materials
+
         [HttpGet("{id}/materials")]
         public async Task<ActionResult<List<ObjectMaterialDto>>> GetObjectMaterials(int id)
         {
@@ -117,13 +130,13 @@ namespace ŽVPAIS_API.Controllers
                 MaterialName = om.Material?.Name,
                 Percentage = om.Percentage,
                 Mass = om.Mass,
-                Volume = om.Volume
+                Volume = om.Volume,
+                RecoveredQuantity = om.RecoveredQuantity
             }).ToList();
 
             return Ok(materials);
         }
 
-        // POST: api/environmentobjects/{id}/materials
         [HttpPost("{id}/materials")]
         public async Task<IActionResult> AddMaterialToObject(int id, ObjectMaterialCreateDto dto)
         {
@@ -133,13 +146,30 @@ namespace ŽVPAIS_API.Controllers
             var material = await _context.Materials.FindAsync(dto.MaterialId);
             if (material == null) return BadRequest("Material not found");
 
+            bool hasQuantity = dto.Mass.HasValue || dto.Volume.HasValue || dto.Percentage.HasValue;
+            if (!hasQuantity)
+                return BadRequest("Reikia nurodyti masę (t), tūrį (m³) arba procentą.");
+
+            if (dto.Mass.HasValue && dto.Mass.Value <= 0)
+                return BadRequest("Masė turi būti teigiama (t).");
+            if (dto.Volume.HasValue && dto.Volume.Value <= 0)
+                return BadRequest("Tūris turi būti teigiamas (m³).");
+            if (dto.Percentage.HasValue && (dto.Percentage.Value <= 0 || dto.Percentage.Value > 100))
+                return BadRequest("Procentas turi būti tarp 0 ir 100.");
+            if (dto.RecoveredQuantity.HasValue && dto.RecoveredQuantity.Value < 0)
+                return BadRequest("Susigrąžintas kiekis negali būti neigiamas.");
+
+            if (dto.RecoveredQuantity.HasValue && dto.Mass.HasValue && dto.RecoveredQuantity.Value > dto.Mass.Value)
+                return BadRequest("Susigrąžintas kiekis negali viršyti išmesto kiekio.");
+
             var objectMaterial = new ObjectMaterial
             {
                 ObjectId = id,
                 MaterialId = dto.MaterialId,
                 Percentage = dto.Percentage,
                 Mass = dto.Mass,
-                Volume = dto.Volume
+                Volume = dto.Volume,
+                RecoveredQuantity = dto.RecoveredQuantity
             };
             _context.ObjectMaterials.Add(objectMaterial);
             await _context.SaveChangesAsync();
@@ -147,8 +177,8 @@ namespace ŽVPAIS_API.Controllers
             return Ok();
         }
 
-        // DELETE: api/environmentobjects/{id}/materials/{materialId}
         [HttpDelete("{id}/materials/{materialId}")]
+        [Authorize(Roles = "Specialist")]
         public async Task<IActionResult> RemoveMaterialFromObject(int id, int materialId)
         {
             var objectMaterial = await _context.ObjectMaterials
