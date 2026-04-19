@@ -1,10 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using ŽVPAIS_API.Data;
 
 #nullable disable
 
 namespace ŽVPAIS_API.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260414120000_FixMaterialColumns")]
     public partial class FixMaterialColumns : Migration
     {
         /// <inheritdoc />
