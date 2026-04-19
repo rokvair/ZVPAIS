@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5219/api/auth';
+const BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5219/api/auth'
+  : 'https://zvpis-backend-gmdudghme8gvb9er.uaenorth-01.azurewebsites.net/api/auth';
 
 export async function login(email, password) {
   const response = await axios.post(`${BASE_URL}/login`, { email, password });
