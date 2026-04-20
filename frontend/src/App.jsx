@@ -55,7 +55,7 @@ function App() {
       <AuthProvider>
         <div>
           <NavBar />
-          <div className="page-content">
+          <div className="page-content"><div className="card">
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -89,7 +89,7 @@ function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </div>
+          </div></div>
         </div>
       </AuthProvider>
     </BrowserRouter>
