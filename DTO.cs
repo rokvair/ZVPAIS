@@ -169,7 +169,8 @@ namespace ŽVPAIS_API
         public decimal KKat { get; set; }     // category coefficient
         public string? ComponentType { get; set; }
         public string? SubstanceType { get; set; }
-        public decimal ZN { get; set; }       // computed damage for this material
+        public decimal ZN { get; set; }             // computed damage for this material
+        public decimal PollutionSize { get; set; }   // taršos dydis = T_n × Q_n × K_kat (without I_n)
     }
 
     public class ObjectDamageBreakdownDto
@@ -180,6 +181,7 @@ namespace ŽVPAIS_API
         public decimal? KKat { get; set; }
         public List<MaterialDamageBreakdownDto> Materials { get; set; } = [];
         public decimal ObjectDamage { get; set; }
+        public decimal ObjectPollutionSize { get; set; }
     }
 
     public class EventDamageBreakdownDto
@@ -188,6 +190,7 @@ namespace ŽVPAIS_API
         public decimal IndexingCoefficient { get; set; }
         public List<ObjectDamageBreakdownDto> Objects { get; set; } = [];
         public decimal TotalDamage { get; set; }
+        public decimal TotalPollutionSize { get; set; }
     }
 
     // --- Pollution severity DTOs ---

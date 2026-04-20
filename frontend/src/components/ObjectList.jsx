@@ -49,7 +49,7 @@ const ObjectList = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <h2 style={{ margin: 0 }}>Aplinkos objektai</h2>
-        <Link to="/objects/new">+ Naujas objektas</Link>
+        {isSpecialist && <Link to="/objects/new">+ Naujas objektas</Link>}
       </div>
       {objects.length === 0 ? (
         <p>Nėra objektų.</p>
@@ -61,7 +61,7 @@ const ObjectList = () => {
               <th style={th}>Pavadinimas</th>
               <th style={th}>Aprašymas</th>
               <th style={th}>Medžiagos</th>
-              <th style={th}>Veiksmai</th>
+              {isSpecialist && <th style={th}>Veiksmai</th>}
             </tr>
           </thead>
           <tbody>
@@ -87,16 +87,14 @@ const ObjectList = () => {
                     <span style={{ color: '#aaa', fontSize: '0.85em' }}>Nėra medžiagų</span>
                   )}
                 </td>
-                <td style={td}>
-                  {isSpecialist && (
-                    <>
-                      <Link to={`/objects/edit/${obj.idObject}`}>Redaguoti</Link>
-                      <button onClick={() => handleDelete(obj.idObject)} style={{ marginLeft: '8px' }}>
-                        Trinti
-                      </button>
-                    </>
-                  )}
-                </td>
+                {isSpecialist && (
+                  <td style={td}>
+                    <Link to={`/objects/edit/${obj.idObject}`}>Redaguoti</Link>
+                    <button onClick={() => handleDelete(obj.idObject)} style={{ marginLeft: '8px' }}>
+                      Trinti
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

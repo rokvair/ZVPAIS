@@ -38,7 +38,7 @@ const MaterialList = () => {
   return (
     <div>
       <h2>Medžiagų sąrašas</h2>
-      <Link to="/materials/new">Sukurti naują medžiagą</Link>
+      {isSpecialist && <Link to="/materials/new">Sukurti naują medžiagą</Link>}
       <table border="1" cellPadding="8" style={{ marginTop: '20px' }}>
         <thead>
           <tr>
@@ -46,9 +46,8 @@ const MaterialList = () => {
             <th>Pavadinimas</th>
             <th>Tipas</th>
             <th>T_n (€/t)</th>
-            <th>Toksiškumo f.</th>
             <th>Vienetas</th>
-            <th>Veiksmai</th>
+            {isSpecialist && <th>Veiksmai</th>}
           </tr>
         </thead>
         <tbody>
@@ -58,18 +57,15 @@ const MaterialList = () => {
               <td>{m.name}</td>
               <td>{substanceLabel(m.substanceType)}</td>
               <td>{m.baseRate ?? '—'}</td>
-              <td>{m.toxicityFactor ?? '—'}</td>
               <td>{m.unit}</td>
-              <td>
-                {isSpecialist && (
-                  <>
-                    <Link to={`/materials/edit/${m.idMaterial}`}>Redaguoti</Link>
-                    <button onClick={() => handleDelete(m.idMaterial)} style={{ marginLeft: '8px' }}>
-                      Trinti
-                    </button>
-                  </>
-                )}
-              </td>
+              {isSpecialist && (
+                <td>
+                  <Link to={`/materials/edit/${m.idMaterial}`}>Redaguoti</Link>
+                  <button onClick={() => handleDelete(m.idMaterial)} style={{ marginLeft: '8px' }}>
+                    Trinti
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

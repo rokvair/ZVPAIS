@@ -45,6 +45,7 @@ namespace ŽVPAIS_API.Services
 
             var objectBreakdowns = new List<ObjectDamageBreakdownDto>();
             decimal eventTotal = 0;
+            decimal eventPollutionTotal = 0;
 
             foreach (var eventObject in eventObj.EventObjects)
             {
@@ -56,6 +57,7 @@ namespace ŽVPAIS_API.Services
 
                 var materialBreakdowns = new List<MaterialDamageBreakdownDto>();
                 decimal objectTotal = 0;
+                decimal objectPollutionTotal = 0;
 
                 foreach (var objMaterial in obj.ObjectMaterials)
                 {
@@ -74,6 +76,8 @@ namespace ŽVPAIS_API.Services
 
                     decimal zN = ApplyFormula(tN, iN, qN, kKat, component, substanceType);
 
+                    decimal pollutionSize = iN != 0 ? zN / iN : 0;
+
                     materialBreakdowns.Add(new MaterialDamageBreakdownDto
                     {
                         MaterialId = material.IdMaterial,
@@ -84,9 +88,11 @@ namespace ŽVPAIS_API.Services
                         KKat = kKat,
                         ComponentType = eventObject.ComponentType,
                         SubstanceType = material.SubstanceType,
-                        ZN = zN
+                        ZN = zN,
+                        PollutionSize = pollutionSize
                     });
                     objectTotal += zN;
+                    objectPollutionTotal += iN != 0 ? zN / iN : 0;
                 }
 
                 if (materialBreakdowns.Count == 0) continue;
@@ -98,9 +104,11 @@ namespace ŽVPAIS_API.Services
                     ComponentType = eventObject.ComponentType,
                     KKat = eventObject.KKat,
                     Materials = materialBreakdowns,
-                    ObjectDamage = objectTotal
+                    ObjectDamage = objectTotal,
+                    ObjectPollutionSize = objectPollutionTotal
                 });
                 eventTotal += objectTotal;
+                eventPollutionTotal += objectPollutionTotal;
             }
 
             return new EventDamageBreakdownDto
@@ -108,7 +116,8 @@ namespace ŽVPAIS_API.Services
                 EventId = eventId,
                 IndexingCoefficient = iN,
                 Objects = objectBreakdowns,
-                TotalDamage = eventTotal
+                TotalDamage = eventTotal,
+                TotalPollutionSize = eventPollutionTotal
             };
         }
 

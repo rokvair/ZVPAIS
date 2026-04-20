@@ -46,7 +46,7 @@ namespace ŽVPAIS_API.Controllers
                 foreach (var objMaterial in obj.ObjectMaterials)
                 {
                     var material = objMaterial.Material;
-                    if (material?.ToxicityFactor == null) continue;
+                    if (material?.BaseRate == null) continue;
 
                     double emitted = ResolveQuantity(objMaterial);
                     if (emitted <= 0) continue;
@@ -54,7 +54,7 @@ namespace ŽVPAIS_API.Controllers
                     double qN = Math.Max(emitted - (objMaterial.RecoveredQuantity ?? 0), 0);
                     if (qN <= 0) continue;
 
-                    double contribution = qN * material.ToxicityFactor.Value * kKatVal;
+                    double contribution = qN * (double)material.BaseRate.Value * kKatVal;
 
                     materialBreakdowns.Add(new MaterialPollutionDto
                     {
@@ -111,10 +111,10 @@ namespace ŽVPAIS_API.Controllers
                     double kKat = (double)(eo.KKat ?? 1.0m);
                     foreach (var om in obj.ObjectMaterials)
                     {
-                        if (om.Material?.ToxicityFactor == null) continue;
+                        if (om.Material?.BaseRate == null) continue;
                         double emitted = ResolveQuantity(om);
                         double qN = Math.Max(emitted - (om.RecoveredQuantity ?? 0), 0);
-                        severity += qN * om.Material.ToxicityFactor.Value * kKat;
+                        severity += qN * (double)om.Material.BaseRate.Value * kKat;
                     }
                 }
                 return new { e.IdEvent, e.EventType, e.EventDate, e.Location, TotalSeverityIndex = severity };

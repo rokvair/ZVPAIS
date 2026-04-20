@@ -146,6 +146,7 @@ const CalculationReview = () => {
                   <th style={th}>I_n</th>
                   <th style={th}>Q_n (t)</th>
                   <th style={th}>K_kat</th>
+                  <th style={th}>Taršos dydis</th>
                   <th style={th}>Z_n (€)</th>
                 </tr>
               </thead>
@@ -158,6 +159,7 @@ const CalculationReview = () => {
                     <td style={td}>{Number(m.in).toFixed(4)}</td>
                     <td style={td}>{Number(m.qn).toFixed(4)}</td>
                     <td style={td}>{Number(m.kKat).toFixed(2)}</td>
+                    <td style={td}>{Number(m.pollutionSize).toFixed(2)}</td>
                     <td style={{ ...td, fontWeight: 'bold' }}>{Number(m.zn).toFixed(2)}</td>
                   </tr>
                 ))}
@@ -165,6 +167,7 @@ const CalculationReview = () => {
               <tfoot>
                 <tr>
                   <td colSpan={6} style={{ ...td, textAlign: 'right', fontWeight: 'bold' }}>Objekto suma:</td>
+                  <td style={{ ...td, fontWeight: 'bold', color: '#555' }}>{Number(obj.objectPollutionSize).toFixed(2)}</td>
                   <td style={{ ...td, fontWeight: 'bold', color: '#c00' }}>{Number(obj.objectDamage).toFixed(2)} €</td>
                 </tr>
               </tfoot>
@@ -173,8 +176,13 @@ const CalculationReview = () => {
         ))
       )}
 
-      <div style={{ fontSize: '1.2em', fontWeight: 'bold', textAlign: 'right', marginTop: '8px' }}>
-        Bendra žala: <span style={{ color: '#c00' }}>{Number(breakdown.totalDamage).toFixed(2)} €</span>
+      <div style={{ textAlign: 'right', marginTop: '8px' }}>
+        <div style={{ color: '#555', marginBottom: '4px' }}>
+          Bendras taršos dydis: <strong>{Number(breakdown.totalPollutionSize).toFixed(2)}</strong>
+        </div>
+        <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
+          Bendra žala: <span style={{ color: '#c00' }}>{Number(breakdown.totalDamage).toFixed(2)} €</span>
+        </div>
       </div>
 
       {/* Map preview */}
