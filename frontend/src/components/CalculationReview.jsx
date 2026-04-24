@@ -223,8 +223,8 @@ const CalculationReview = () => {
         )}
       </div>
 
-      {/* Wind dispersion section */}
-      <div style={{ marginTop: '28px', borderTop: '2px solid #e5e7eb', paddingTop: '16px' }}>
+      {/* Wind dispersion section — fires only */}
+      {eventData?.eventType === 'gaisras' && <div style={{ marginTop: '28px', borderTop: '2px solid #e5e7eb', paddingTop: '16px' }}>
         <button
           onClick={() => setShowDispersion(v => !v)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', color: '#1d4ed8', padding: 0 }}
