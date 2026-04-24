@@ -236,7 +236,7 @@ const CalculationReview = () => {
             <EventWindDispersion breakdown={breakdown} eventData={eventData} />
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 };
