@@ -15,7 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS – single policy for the Vite dev server
+// CORS - single policy for the Vite dev server
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -60,6 +60,7 @@ builder.Services.Configure<HostOptions>(o =>
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IDamageCalculationService, DamageCalculationService>();
+builder.Services.AddScoped<IGaussianPlumeService, GaussianPlumeService>();
 builder.Services.AddHostedService<EventProcessingService>();
 
 var app = builder.Build();

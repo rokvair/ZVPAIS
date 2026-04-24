@@ -48,7 +48,7 @@ namespace ŽVPAIS_API.Controllers
                     var material = objMaterial.Material;
                     if (material?.BaseRate == null) continue;
 
-                    double emitted = ResolveQuantity(objMaterial);
+                    double emitted = ResolveQuantity(objMaterial, obj);
                     if (emitted <= 0) continue;
 
                     double qN = Math.Max(emitted - (objMaterial.RecoveredQuantity ?? 0), 0);
@@ -112,7 +112,7 @@ namespace ŽVPAIS_API.Controllers
                     foreach (var om in obj.ObjectMaterials)
                     {
                         if (om.Material?.BaseRate == null) continue;
-                        double emitted = ResolveQuantity(om);
+                        double emitted = ResolveQuantity(om, obj);
                         double qN = Math.Max(emitted - (om.RecoveredQuantity ?? 0), 0);
                         severity += qN * (double)om.Material.BaseRate.Value * kKat;
                     }
@@ -125,12 +125,16 @@ namespace ŽVPAIS_API.Controllers
             return Ok(results);
         }
 
-        private static double ResolveQuantity(ObjectMaterial objMaterial)
+        // Returns effective quantity in tonnes, matching the logic in DamageCalculationService.
+        private static double ResolveQuantity(ObjectMaterial om, EnvironmentObject obj)
         {
-            if (objMaterial.Mass.HasValue)
-                return objMaterial.Mass.Value;
-            if (objMaterial.Volume.HasValue)
-                return objMaterial.Volume.Value;
+            if (om.Mass.HasValue) return om.Mass.Value;
+            if (om.Volume.HasValue) return om.Volume.Value;
+            if (om.Percentage.HasValue)
+            {
+                double total = obj.TotalMass ?? obj.TotalVolume ?? 0;
+                return om.Percentage.Value / 100.0 * total;
+            }
             return 0;
         }
     }

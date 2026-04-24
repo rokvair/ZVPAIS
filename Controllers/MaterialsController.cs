@@ -32,6 +32,7 @@ namespace Zpvis.Api.Controllers
                 Unit = m.Unit,
                 BaseRate = m.BaseRate,
                 SubstanceType = m.SubstanceType,
+                EmissionCategory = m.EmissionCategory,
                 CreatedAt = m.CreatedAt
             }).ToList();
 
@@ -71,6 +72,7 @@ namespace Zpvis.Api.Controllers
                 Unit = dto.Unit,
                 BaseRate = dto.BaseRate,
                 SubstanceType = dto.SubstanceType,
+                EmissionCategory = dto.EmissionCategory,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -106,6 +108,7 @@ namespace Zpvis.Api.Controllers
             material.Unit = dto.Unit;
             material.BaseRate = dto.BaseRate;
             material.SubstanceType = dto.SubstanceType;
+            material.EmissionCategory = dto.EmissionCategory;
 
             await _context.SaveChangesAsync();
 

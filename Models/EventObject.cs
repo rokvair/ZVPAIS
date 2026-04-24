@@ -16,12 +16,12 @@ namespace ŽVPAIS_API.Models
         [Column("object_id")]
         public int ObjectId { get; set; }
 
-        // "water", "soil", "air" — where the leaked material ends up
+        // Environmental component type: "water", "soil", or "air".
         [Column("component_type")]
         [StringLength(50)]
         public string? ComponentType { get; set; }
 
-        // K_kat — sensitivity coefficient of the affected area for this event-object link
+        // K_kat: sensitivity coefficient of the affected area, per Order No. 471 Table 2.
         [Column("k_kat")]
         public decimal? KKat { get; set; }
 

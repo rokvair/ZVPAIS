@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 // Funkcija, skirta gauti spalvą pagal įvykio tipą
 const getColorByType = (type) => {
   switch (type) {
-    case 'gaisas':
+    case 'gaisras':
       return '#ff4444'; // raudona
     case 'medžiagų išsiliejimas':
       return '#ffaa00'; // oranžinė

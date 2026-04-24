@@ -20,7 +20,7 @@ namespace ŽVPAIS_API.Migrations
                 table: "materials",
                 newName: "base_rate");
 
-            // Drop HarmfulnessFactor — the tariff (base_rate / T_n) already encodes
+            // Drop HarmfulnessFactor: the tariff (base_rate / T_n) already encodes
             // harmfulness per substance group per the legal methodology (Order No. 471).
             // A separate multiplier is not part of the formula Z_n = T_n * I_n * Q_n * K_kat.
             migrationBuilder.DropColumn(

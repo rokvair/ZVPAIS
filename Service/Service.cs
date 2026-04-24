@@ -19,7 +19,7 @@ namespace ŽVPAIS_API.Services
     {
         private readonly IEventRepository _repository;
         private readonly IDamageCalculationService _damageCalculationService;
-        private readonly string[] _allowedEventTypes = ["gaisas", "medžiagų išsiliejimas", "stichija"];
+        private readonly string[] _allowedEventTypes = ["gaisras", "medžiagų išsiliejimas", "stichija"];
         private readonly GeoJsonReader _geoJsonReader = new();
         private readonly GeoJsonWriter _geoJsonWriter = new();
 

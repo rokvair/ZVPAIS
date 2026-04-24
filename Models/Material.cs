@@ -27,14 +27,19 @@ namespace ŽVPAIS_API.Models
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // T_n — tariff per tonne (Lt/t or EUR/t) from Methodology Table 1 or Table 3.
-        // This already reflects the harmfulness of the substance/group.
+        // T_n: tariff per tonne (EUR/t) from Order No. 471 Table 1 or Table 3.
+        // The tariff already encodes the harmfulness of the substance group.
         [Column("base_rate")]
         public decimal? BaseRate { get; set; }
 
-        // "standard" | "bds7" | "suspended" — triggers Q^0.8 branch for water/soil >1t
+        // Substance type: "standard", "bds7", or "suspended". Triggers the Q^0.8 formula branch for water/soil quantities above 1 tonne.
         [Column("substance_type")]
         [StringLength(50)]
         public string? SubstanceType { get; set; }
+
+        // Emission category used in Gaussian plume calculations. Must match a key in EmissionCompound.Ef (e.g. "polymers", "plastics", "paper", "textile").
+        [Column("emission_category")]
+        [StringLength(50)]
+        public string? EmissionCategory { get; set; }
     }
 }

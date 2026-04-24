@@ -159,7 +159,7 @@ namespace ŽVPAIS_API.Services
 
         private static string EventTypeLabel(string? t) => t switch
         {
-            "gaisas" => "Gaisras",
+            "gaisras" => "Gaisras",
             "medžiagų išsiliejimas" => "Medžiagų išsiliejimas",
             "stichija" => "Stichija",
             _ => t ?? ""

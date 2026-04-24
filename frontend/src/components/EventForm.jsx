@@ -12,7 +12,7 @@ const EventForm = () => {
   const { isSpecialist } = useAuth();
 
   const [formData, setFormData] = useState({
-    eventType: 'gaisas',
+    eventType: 'gaisras',
     eventDate: '',
     description: '',
     location: '',
@@ -110,7 +110,7 @@ const EventForm = () => {
         <div>
           <label>Tipas:</label>
           <select name="eventType" value={formData.eventType} onChange={handleChange} required>
-            <option value="gaisas">Gaisras</option>
+            <option value="gaisras">Gaisras</option>
             <option value="medžiagų išsiliejimas">Medžiagų išsiliejimas</option>
             <option value="stichija">Stichija</option>
           </select>

@@ -17,6 +17,8 @@ namespace ŽVPAIS_API.Data
         public DbSet<EnvironmentObject> Objects { get; set; }
         public DbSet<ObjectMaterial> ObjectMaterials { get; set; }
         public DbSet<IndexingCoefficient> IndexingCoefficients { get; set; }
+        public DbSet<WasteType> WasteTypes { get; set; }
+        public DbSet<EmissionCompound> EmissionCompounds { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

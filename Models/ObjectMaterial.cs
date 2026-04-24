@@ -25,7 +25,7 @@ namespace ŽVPAIS_API.Models
         [Column("volume")]
         public double? Volume { get; set; }
 
-        // Q_n2 — quantity recovered/neutralised; Q_n = Mass − RecoveredQuantity
+        // Q_n2: quantity recovered or neutralised. Net emitted quantity is Mass minus RecoveredQuantity.
         [Column("recovered_quantity")]
         public double? RecoveredQuantity { get; set; }
 

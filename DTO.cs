@@ -17,7 +17,9 @@ namespace ŽVPAIS_API
         [EmailAddress]
         public string Email { get; set; }
         [Required]
-        [MinLength(6)]
+        [MinLength(8)]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$",
+            ErrorMessage = "Slaptažodis turi būti bent 8 simbolių ilgio, turėti didžiąją raidę, skaitmenį ir specialų simbolį.")]
         public string Password { get; set; }
         public bool IsSpecialist { get; set; }
         public string? Name { get; set; }
@@ -64,7 +66,7 @@ namespace ŽVPAIS_API
     public class EventCreateDto
     {
         [Required]
-        public string EventType { get; set; } // 'gaisas', 'medžiagų išsiliejimas', 'stichija'
+        public string EventType { get; set; } // 'gaisras', 'medžiagų išsiliejimas', 'stichija'
         [Required]
         public DateTimeOffset EventDate { get; set; }
         public string Description { get; set; }
@@ -72,8 +74,8 @@ namespace ŽVPAIS_API
         [Required]
         public string Polygon { get; set; }
         public string Status { get; set; }
-        public List<EventObjectAssignDto> EventObjects { get; set; }
-        public List<IncidentMaterialDto> Materials { get; set; }
+        public List<EventObjectAssignDto> EventObjects { get; set; } = [];
+        public List<IncidentMaterialDto> Materials { get; set; } = [];
     }
 
     public class EventObjectResponseDto
@@ -122,10 +124,10 @@ namespace ŽVPAIS_API
         public string Description { get; set; }
         public double? ToxicityFactor { get; set; }
         public string Unit { get; set; }
-        // T_n: tariff per tonne from Methodology Table 1 (water/soil) or Table 3 (air)
         public decimal? BaseRate { get; set; }
-        // "standard" | "bds7" | "suspended"
         public string? SubstanceType { get; set; }
+        // EF category for Gaussian plume: "polymers"|"plastics"|"paper"|"textile"|null
+        public string? EmissionCategory { get; set; }
     }
 
     public class MaterialResponseDto
@@ -137,6 +139,7 @@ namespace ŽVPAIS_API
         public string Unit { get; set; }
         public decimal? BaseRate { get; set; }
         public string? SubstanceType { get; set; }
+        public string? EmissionCategory { get; set; }
         public DateTime CreatedAt { get; set; }
     }
     public class ObjectCreateDto
@@ -241,6 +244,89 @@ namespace ŽVPAIS_API
     public class PdfRequestDto
     {
         public string? MapImageBase64 { get; set; }
+    }
+
+    // --- Wind dispersion DTOs ---
+
+    public class WindParamsDto
+    {
+        public double FireDurationHours { get; set; } = 1.0;
+        [Required] public double WindSpeedMs { get; set; }
+        [Required] public double WindDirectionDeg { get; set; }
+        public string StabilityClass { get; set; } = "D";
+        public double SourceHeightM { get; set; } = 10.0;
+        [Required] public double FireLat { get; set; }
+        [Required] public double FireLon { get; set; }
+    }
+
+    public class MaterialCategoryDto
+    {
+        public string MaterialName { get; set; } = "";
+        public string? EmissionCategory { get; set; }
+        public double MassTonnes { get; set; }
+    }
+
+    public class EventDispersionResultDto
+    {
+        public DispersionResultDto Dispersion { get; set; } = new();
+        public double TotalMassTonnes { get; set; }
+        public List<MaterialCategoryDto> Materials { get; set; } = [];
+        public List<string> UncategorizedMaterials { get; set; } = [];
+        public List<string> ZeroQuantityMaterials { get; set; } = [];
+    }
+
+    public class WasteTypeListItemDto
+    {
+        public int Id { get; set; }
+        public string EwcCode { get; set; } = "";
+        public string Description { get; set; } = "";
+        public bool IsHazardous { get; set; }
+        public bool IsCombustible { get; set; }
+    }
+
+    public class DispersionRequestDto
+    {
+        [Required]
+        public int WasteTypeId { get; set; }
+        [Required]
+        public double TotalMassTonnes { get; set; }
+        public double FireDurationHours { get; set; } = 1.0;
+        [Required]
+        public double WindSpeedMs { get; set; }
+        [Required]
+        public double WindDirectionDeg { get; set; }
+        public string StabilityClass { get; set; } = "D";
+        public double SourceHeightM { get; set; } = 10.0;
+        [Required]
+        public double FireLat { get; set; }
+        [Required]
+        public double FireLon { get; set; }
+    }
+
+    public class GridPointDto
+    {
+        public double DownwindM { get; set; }
+        public double CrosswindM { get; set; }
+        public double ConcentrationUgM3 { get; set; }
+    }
+
+    public class CompoundDispersionDto
+    {
+        public int CompoundId { get; set; }
+        public string CompoundName { get; set; } = "";
+        public double? BaseRate { get; set; }
+        public double EmissionRateGs { get; set; }
+        public List<GridPointDto> GridPoints { get; set; } = [];
+    }
+
+    public class DispersionResultDto
+    {
+        public double FireLat { get; set; }
+        public double FireLon { get; set; }
+        public double WindDirectionDeg { get; set; }
+        public double WindSpeedMs { get; set; }
+        public string StabilityClass { get; set; } = "";
+        public List<CompoundDispersionDto> Compounds { get; set; } = [];
     }
 
     public class ReportCreateDto

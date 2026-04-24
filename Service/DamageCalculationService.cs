@@ -19,12 +19,18 @@ namespace ŽVPAIS_API.Services
             _context = context;
         }
 
+        /// <summary>Returns the total monetary damage (EUR) for an event using the Order No. 471 formula.</summary>
         public async Task<decimal> CalculateDamageForEvent(int eventId)
         {
             var breakdown = await CalculateBreakdownForEvent(eventId);
             return breakdown.TotalDamage;
         }
 
+        /// <summary>
+        /// Calculates a full per-material damage breakdown for an event.
+        /// Formula per Order No. 471: Z_n = Q_n * T_n * K_kat * I_n
+        /// where Q_n = emitted quantity, T_n = base rate, K_kat = category coefficient, I_n = indexing coefficient.
+        /// </summary>
         public async Task<EventDamageBreakdownDto> CalculateBreakdownForEvent(int eventId)
         {
             var eventObj = await _context.Events

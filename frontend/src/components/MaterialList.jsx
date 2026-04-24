@@ -45,6 +45,7 @@ const MaterialList = () => {
             <th>ID</th>
             <th>Pavadinimas</th>
             <th>Tipas</th>
+            <th>Emisijų kategorija</th>
             <th>T_n (€/t)</th>
             <th>Vienetas</th>
             {isSpecialist && <th>Veiksmai</th>}
@@ -56,6 +57,7 @@ const MaterialList = () => {
               <td>{m.idMaterial}</td>
               <td>{m.name}</td>
               <td>{substanceLabel(m.substanceType)}</td>
+              <td>{categoryLabel(m.emissionCategory)}</td>
               <td>{m.baseRate ?? '—'}</td>
               <td>{m.unit}</td>
               {isSpecialist && (
@@ -75,5 +77,6 @@ const MaterialList = () => {
 };
 
 const substanceLabel = (t) => ({ standard: 'Standartinis', bds7: 'BDS₇', suspended: 'Suspenduotos' }[t] || '—');
+const categoryLabel  = (c) => ({ polymers: 'Polimerai', plastics: 'Plastikai', resins: 'Dervos', paper: 'Popierius', textile: 'Tekstilė' }[c] || '—');
 
 export default MaterialList;

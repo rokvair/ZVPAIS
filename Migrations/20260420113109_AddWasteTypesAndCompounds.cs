@@ -1,0 +1,240 @@
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
+
+namespace ŽVPAIS_API.Migrations
+{
+    public partial class AddWasteTypesAndCompounds : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                name: "emission_compounds",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    base_rate = table.Column<double>(type: "double precision", nullable: true),
+                    ef = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_emission_compounds", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "waste_types",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ewc_code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    description = table.Column<string>(type: "text", nullable: false),
+                    is_hazardous = table.Column<bool>(type: "boolean", nullable: false),
+                    is_combustible = table.Column<bool>(type: "boolean", nullable: false),
+                    total_mass_tonnes = table.Column<double>(type: "double precision", nullable: false),
+                    morphology = table.Column<string>(type: "jsonb", nullable: false),
+                    morph_sum = table.Column<double>(type: "double precision", nullable: false),
+                    flags = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_waste_types", x => x.id);
+                });
+
+            migrationBuilder.Sql(@"INSERT INTO waste_types (id,ewc_code,description,is_hazardous,is_combustible,total_mass_tonnes,morphology,morph_sum,flags) VALUES
+(1,'02 01 08','agrochemijos atliekos, kuriose yra pavojingų cheminių medžiagų',true,true,4.6643,'{""paper"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(2,'06 01 06','kitos rūgštys',true,false,0.091,'{""oil"":100}'::jsonb,100,'{}'::jsonb),
+(3,'06 02 04','natrio hidroksidas ir kalio hidroksidas',true,false,3.653,'{""oil"":100}'::jsonb,100,'{}'::jsonb),
+(4,'06 03 15','metalų oksidai, kuriuose yra sunkiųjų metalų',true,false,3.675,'{""liquid_fuel"":100}'::jsonb,100,'{""sunkieji_metalai2"":true}'::jsonb),
+(5,'06 04 05','atliekos, kuriose yra kitų sunkiųjų metalų',true,false,5.144,'{""wood"":100}'::jsonb,100,'{""sunkieji_metalai2"":true}'::jsonb),
+(6,'06 13 02','naudotos aktyvintos anglys (išskyrus 06 07 02)',true,true,1.248,'{""polymers"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(7,'07 01 03','organiniai halogenintieji tirpikliai, plovimo skysčiai ir motininiai tirpalai',true,true,4.314699999999999,'{""other_salts"":100}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(8,'07 01 04','kiti organiniai tirpikliai, plovimo skysčiai ir motininiai tirpalai',true,true,0.169,'{""textile"":50,""carbon"":50}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(9,'07 02 08','kitos distiliavimo nuosėdos ir reakcijų likučiai',true,true,0.273,'{""textile"":80,""carbon"":10,""rubber"":10}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(10,'07 02 14','priedų, kuriuose yra pavojingų cheminių medžiagų, atliekos',true,true,2.203,'{""wood"":100}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(11,'07 03 04','kiti organiniai tirpikliai, plovimo skysčiai ir motininiai tirpalai',true,true,0.074,'{""textile"":100}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(12,'07 03 08','kitos distiliavimo nuosėdos ir reakcijų likučiai',true,true,2.3609999999999998,'{""textile"":80,""carbon"":10,""rubber"":10}'::jsonb,100,'{""organiniai_jk"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(13,'07 05 10','kiti filtrų papločiai ir naudoti absorbentai',true,true,0.104,'{""polymers"":25,""liquid_organic"":50,""liquid_fuel"":25}'::jsonb,100,'{""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(14,'07 05 13','kietosios atliekos, kuriose yra pavojingų cheminių medžiagų',true,true,0.193,'{""wood"":100}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(15,'07 06 01','vandeniniai plovimo skysčiai ir motininiai tirpalai',true,true,0.24,'{""carbon"":100}'::jsonb,100,'{""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(16,'07 06 04','kiti organiniai tirpikliai, plovimo skysčiai ir motininiai tirpalai',true,true,0.366,'{""textile"":50,""carbon"":50}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(17,'07 07 04','kiti organiniai tirpikliai, plovimo skysčiai ir motininiai tirpalai',true,true,0.94,'{""textile"":50,""carbon"":50}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(18,'08 01 13','dažų ir lako dumblas, kuriame yra organinių tirpiklių ar kitų pavojingų cheminių medžiagų',true,true,0.328,'{""textile"":80,""liquid_organic"":20,""liquid_fuel"":1,""wood"":15,""oil"":1}'::jsonb,117,'{""organiniai_jk"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(19,'08 01 15','vandeninis dumblas, kuriame yra dažų ar lako, kuriuose yra organinių tirpiklių ar kitų pavojingų cheminių medžiagų',true,true,2.351,'{""textile"":16,""liquid_organic"":4,""halogenated"":80}'::jsonb,100,'{""organiniai_jk"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(20,'08 01 17','dažų ar lako šalinimo atliekos, kuriose yra organinių tirpiklių ar kitų pavojingų cheminių medžiagų',true,true,0.012000000000000455,'{""textile"":80,""liquid_organic"":20,""liquid_fuel"":1,""wood"":10,""oil"":1}'::jsonb,112,'{""organiniai_jk"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(21,'08 01 21','dažų ar lako nuėmiklių atliekos',true,true,0.669,'{""textile"":80,""liquid_organic"":20}'::jsonb,100,'{""organiniai_jk"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(22,'08 03 12','dažų atliekos, kuriose yra pavojingų cheminių medžiagų',true,true,0.269,'{""liquid_organic"":100}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(23,'09 01 02','vandeniniai ofseto plokščių ryškalų tirpalai',true,false,1.671,'{""oil"":100}'::jsonb,100,'{""lakioji_dalis"":true}'::jsonb),
+(24,'09 01 03','ryškalų tirpalai su tirpikliais',true,false,0.685,'{""textile"":20,""oil"":80}'::jsonb,100,'{""organiniai_jk"":true,""sausa_liekana"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(25,'09 01 04','fiksažų tirpalai',true,false,0.337,'{""wood"":95,""oil"":5}'::jsonb,100,'{""lakioji_dalis"":true}'::jsonb),
+(26,'09 01 05','balinimo tirpalai ir balinimo fiksažų tirpalai',true,false,0.023,'{""wood"":95,""oil"":5}'::jsonb,100,'{""sausa_liekana"":true,""lakioji_dalis"":true}'::jsonb),
+(27,'09 01 06','fotografijos atliekų apdorojimo jų susidarymo vietoje atliekos, kuriose yra sidabro',true,false,0.58,'{""liquid_fuel"":5,""wood"":95}'::jsonb,100,'{""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(28,'10 01 04','lakieji naftos pelenai ir garo katilų dulkės',true,false,4.986,'{""liquid_fuel"":100}'::jsonb,100,'{}'::jsonb),
+(29,'11 01 05','ėsdinimo rūgštys',true,false,3.0249999999999986,'{""oil"":100}'::jsonb,100,'{}'::jsonb),
+(30,'11 01 11','vandeniniai skalavimo skysčiai, kuriuose yra pavojingų cheminių medžiagų',true,false,5.028,'{""carbon"":100}'::jsonb,100,'{}'::jsonb),
+(31,'11 01 13','riebalų šalinimo atliekos, kuriose yra pavojingų cheminių medžiagų',true,false,3.157,'{""carbon"":90}'::jsonb,90,'{}'::jsonb),
+(32,'12 01 20','naudotos šlifavimo dalys ir šlifavimo medžiagos, kuriose yra pavojingų cheminių medžiagų',true,false,8.026,'{""liquid_fuel"":100}'::jsonb,100,'{""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(33,'13 05 01','žvyro gaudyklės ir naftos produktų/vandens separatorių kietosios medžiagos',true,true,2.697,'{""textile"":4,""liquid_fuel"":80,""halogenated"":16}'::jsonb,100,'{""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(34,'13 05 02','naftos produktų/vandens separatorių dumblas',true,true,3.2,'{""textile"":20,""halogenated"":80}'::jsonb,100,'{""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(35,'14 06 02','kiti halogenintieji tirpikliai ir tirpiklių mišiniai',true,true,1.017,'{""other_salts"":100}'::jsonb,100,'{""organiniai_jk"":true,""lakioji_dalis"":true}'::jsonb),
+(36,'14 06 03','kiti tirpikliai ir tirpiklių mišiniai',true,true,3.6549999999999994,'{""textile"":100}'::jsonb,100,'{""organiniai_jk"":true,""lakioji_dalis"":true}'::jsonb),
+(37,'14 06 04','dumblas arba kietosios atliekos, kuriuose yra halogenintųjų tirpiklių',true,true,0.39899999999999997,'{""other_salts"":20,""liquid_fuel"":80}'::jsonb,100,'{""organiniai_jk"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(38,'15 01 01','popieriaus ir kartono pakuotės',false,true,108.42,'{""plastics"":100}'::jsonb,100,'{""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(39,'15 01 10','pakuotės, kuriose yra pavojingų cheminių medžiagų likučių arba kurios yra jomis užterštos',true,true,0.37879,'{""primary"":70,""wood"":10,""liquid_fuel"":20}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(40,'15 01 11','metalinės pakuotės, įskaitant suslėgto oro talpyklas, kuriose yra pavojingų kietų poringų rišamųjų medžiagų (pvz., asbesto), įskaitant tuščius slėginius konteinerius',true,false,1.0897,'{""liquid_fuel"":100}'::jsonb,100,'{""sunkieji_metalai2"":true}'::jsonb),
+(41,'15 02 03','absorbentai, filtrų medžiagos, pašluostės ir apsauginiai drabužiai, nenurodyti 15 02 02',false,true,1.6240000000000094,'{""col_K"":100}'::jsonb,100,'{""tekstile_flag"":true,""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(42,'16 01 07','tepalų filtrai',true,true,16.841499999999996,'{""primary"":3,""polymers"":2,""plastics"":15,""textile"":20,""liquid_fuel"":60}'::jsonb,100,'{""tekstile_flag"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(43,'16 01 10','sprogios sudedamosios dalys (pvz., oro pagalvės)',true,true,0.025,'{""col_K"":100}'::jsonb,100,'{""tekstile_flag"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(44,'16 01 11','stabdžių trinkelės, kuriose yra asbesto',true,true,0.17200000000000001,'{""col_J"":30,""polymers"":6,""liquid_fuel"":60}'::jsonb,96,'{""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(45,'16 03 03','neorganinės atliekos, kuriose yra pavojingų cheminių medžiagų',true,false,0.17400000000000002,'{""liquid_fuel"":100}'::jsonb,100,'{""sunkieji_metalai2"":true}'::jsonb),
+(46,'16 03 05','organinės atliekos, kuriose yra pavojingų cheminių medžiagų',true,true,9.314,'{""wood"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(47,'16 05 04','dujos slėginiuose konteineriuose, kuriose yra pavojingų cheminių medžiagų (įskaitant halonus)',true,false,0.495,'{""liquid_fuel"":100}'::jsonb,100,'{""sausa_liekana"":true}'::jsonb),
+(48,'16 05 06','laboratorinės cheminės medžiagos, įskaitant laboratorinių cheminių medžiagų mišinius, sudarytos iš pavojingų cheminių medžiagų arba jų turinčios',true,true,11.683500000000002,'{""wood"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(49,'16 05 07','nebereikalingos neorganinės cheminės medžiagos, sudarytos iš pavojingų cheminių medžiagų arba jų turinčios',true,false,1.0490000000000066,'{}'::jsonb,0,'{""sunkieji_metalai2"":true}'::jsonb),
+(50,'16 05 08','nebereikalingos organinės cheminės medžiagos, sudarytos iš pavojingų cheminių medžiagų arba jų turinčios',true,true,2.7010000000000005,'{""wood"":100}'::jsonb,100,'{""sausa_liekana"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(51,'17 01 06','betono, plytų, čerpių ir keramikos gaminių mišiniai arba atskiros dalys, kuriuose yra pavojingų cheminių medžiagų',true,false,1.494,'{""liquid_fuel"":100}'::jsonb,100,'{""sausa_liekana"":true,""sunkieji_metalai2"":true}'::jsonb),
+(52,'17 04 09','metalų atliekos, užterštos pavojingomis cheminėmis medžiagomis',true,false,0.516,'{""liquid_fuel"":100}'::jsonb,100,'{""sausa_liekana"":true,""sunkieji_metalai2"":true}'::jsonb),
+(53,'17 05 03','gruntas ir akmenys, kuriuose yra pavojingų cheminių medžiagų',true,false,1.6039999999999939,'{""liquid_fuel"":100}'::jsonb,100,'{""sausa_liekana"":true,""sunkieji_metalai2"":true}'::jsonb),
+(54,'17 09 03','kitos statybinės ir griovimo atliekos (įskaitant mišrias atliekas), kuriose yra pavojingų cheminių medžiagų',true,true,1.233,'{""primary"":4,""plastics"":11,""liquid_fuel"":85}'::jsonb,100,'{""tekstile_flag"":true,""sausa_liekana"":true,""sunkieji_metalai2"":true}'::jsonb),
+(55,'18 01 01','aštrūs daiktai (išskyrus 18 01 03)',false,false,0.061,'{""liquid_fuel"":100}'::jsonb,100,'{}'::jsonb),
+(56,'18 01 06','cheminės medžiagos, sudarytos iš pavojingų cheminių medžiagų arba jų turinčios',true,true,0.342,'{""liquid_organic"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(57,'18 01 09','vaistai, nenurodyti 18 01 08',false,true,0.016,'{""liquid_organic"":100}'::jsonb,100,'{""sausa_liekana"":true,""lakioji_dalis"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(58,'18 02 01','aštrūs daiktai (išskyrus 18 02 02)',false,false,0.124,'{""liquid_fuel"":100}'::jsonb,100,'{}'::jsonb),
+(59,'18 02 03','atliekos, kurių rinkimui ir šalinimui netaikomi specialūs reikalavimai, kad būtų išvengta infekcijos',false,true,0.103,'{""primary"":50,""col_K"":50}'::jsonb,100,'{""tekstile_flag"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(60,'18 02 05','cheminės medžiagos, sudarytos iš pavojingų cheminių medžiagų arba jų turinčios',true,true,0.01,'{""liquid_organic"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(61,'18 02 06','cheminės medžiagos, nenurodytos 18 02 05',false,true,0.129,'{""liquid_organic"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true,""sunkieji_metalai2"":true}'::jsonb),
+(62,'18 02 07','citotoksiniai arba citostatiniai vaistai',true,true,0.001,'{""liquid_organic"":100}'::jsonb,100,'{""sausa_liekana"":true,""fiksuota_anglis"":true,""peleningumas"":true,""sunkieji_metalai"":true}'::jsonb),
+(63,'20 01 01','popierius ir kartonas',false,true,8.137,'{""plastics"":100}'::jsonb,100,'{}'::jsonb),
+(64,'20 01 13','Degi atlieka /',true,true,1.875,'{""textile"":100}'::jsonb,100,'{}'::jsonb),
+(65,'20 01 14','rūgštys',true,false,2.0150000000000006,'{""oil"":100}'::jsonb,100,'{}'::jsonb),
+(66,'20 01 15','Burnable waste',true,false,0.925,'{""oil"":100}'::jsonb,100,'{}'::jsonb),
+(67,'20 01 19','Naudotos filtravimo ir absorbentų medžiagos',true,true,0.373,'{""paper"":100}'::jsonb,100,'{}'::jsonb),
+(68,'20 01 25','maistinis aliejus ir riebalai',false,true,0.196,'{""carbon"":100}'::jsonb,100,'{}'::jsonb),
+(69,'20 01 28','dažai, rašalas, klijai ir dervos, nenurodyti 20 01 27',false,true,0.198,'{""col_J"":20,""liquid_organic"":80}'::jsonb,100,'{}'::jsonb),
+(70,'20 01 29','plovikliai, kuriuose yra pavojingų cheminių medžiagų',true,true,1.513,'{""carbon"":100}'::jsonb,100,'{}'::jsonb),
+(71,'20 01 31','Kitos cheminių preparatų atliekos',true,true,0.012,'{""liquid_organic"":100}'::jsonb,100,'{}'::jsonb),
+(72,'20 01 32','vaistai, nenurodyti 20 01 31',false,true,0.011,'{""liquid_organic"":100}'::jsonb,100,'{}'::jsonb),
+(73,'20 01 37','mediena, kurioje yra pavojingų cheminių medžiagų',true,true,5.499000000000002,'{""plastics"":100}'::jsonb,100,'{}'::jsonb);
+SELECT setval(pg_get_serial_sequence('waste_types','id'),73);");
+
+            migrationBuilder.Sql(@"INSERT INTO emission_compounds (id,name,base_rate,ef) VALUES
+(1,'spent activated carbon',28,'{""polymers"":100,""plastics"":57.985611510791365,""resins"":20,""paper"":78.5}'::jsonb),
+(2,'organic halogenated solvents, washing liquids and mother liquors',767,'{""polymers"":7,""plastics"":1.4028776978417268,""resins"":2.4,""paper"":9.083333333333334}'::jsonb),
+(3,'other organic solvents, washing liquids and mother liquors',405,'{""polymers"":140,""resins"":2.27,""paper"":351.8}'::jsonb),
+(4,'Ethenyl cyclohexene',240,'{""polymers"":100,""plastics"":1.705,""resins"":129}'::jsonb),
+(5,'wastes from additives containing hazardous substances',16508,'{""plastics"":0.010071942446043166,""paper"":8.316666666666666}'::jsonb),
+(6,'other filter cakes and spent absorbents',16508,'{""paper"":129}'::jsonb),
+(7,'Non-volatile PAH',1286,'{""polymers"":0.00307}'::jsonb),
+(8,'Benzene',1286,'{""polymers"":0.00294}'::jsonb),
+(9,'Toluene',315396,'{""polymers"":0.00146}'::jsonb),
+(10,'Ethyl benzene',28,'{""polymers"":0.00715}'::jsonb),
+(11,'Kitos popieriaus ir kartono atliekos',1286,'{""polymers"":0.00031,""plastics"":0.01105}'::jsonb),
+(12,'Xylenes',1286,'{""polymers"":0.011800000000000001}'::jsonb),
+(13,'Nonane',1286,'{""polymers"":0.00034}'::jsonb),
+(14,'1,2,4 - trimethylbenzene',1286,'{""polymers"":0.0010400000000000001}'::jsonb),
+(15,'Karboniliniai junginiai / Carbonyl',315396,'{""polymers"":0.00237}'::jsonb),
+(16,'Formaldehyde',315396,'{""polymers"":0.0002}'::jsonb),
+(17,'Acetaldehyde',28,'{""polymers"":0.041}'::jsonb),
+(18,'Acrolein',28,'{""polymers"":0.007679999999999999}'::jsonb),
+(19,'Crotonaldehyde',28,'{""polymers"":0.00735}'::jsonb),
+(20,'Benzaldehyde',1995772,'{""polymers"":0.00735}'::jsonb),
+(21,'Methylisobutylketone',1286,'{""polymers"":0.04496}'::jsonb),
+(22,'laboratory chemicals, consisting of or containing hazardous substances, including mixtures of laboratory chemicals',NULL,'{""resins"":1.764}'::jsonb),
+(23,'maišytos maisto žaliavų ir produktų atliekos',28,'{""resins"":0.013}'::jsonb),
+(24,'Benzo(b)thiophene',315396,'{""polymers"":0.1381}'::jsonb),
+(25,'TCDF',28,'{""polymers"":0.13897,""resins"":0.042}'::jsonb),
+(26,'1-Hexane',28,'{""polymers"":0.0674}'::jsonb),
+(27,'Benzo(G,H,I)perylene',28,'{""polymers"":0.07307999999999999}'::jsonb),
+(28,'Stibis / Antimony',28,'{""polymers"":0.08911}'::jsonb),
+(29,'Magnis / Magnesium',28,'{""polymers"":0.04212}'::jsonb),
+(30,'Natris / Sodium',28,'{""polymers"":2.3095700000000003}'::jsonb),
+(31,'Generated pollutants,',28,'{""polymers"":0.03344}'::jsonb),
+(32,'Butadiene',28,'{""resins"":0.098}'::jsonb),
+(33,'Nehalogeninti naudoti tirpikliai',16508,'{""polymers"":1.9299300000000001,""resins"":1.249}'::jsonb),
+(34,'Rūgščių atliekos',1286,'{""polymers"":1.39504,""resins"":0.071}'::jsonb),
+(35,'Šarmų atliekos',1286,'{""resins"":0.01}'::jsonb),
+(36,'Alifatiniai junginiai',1286,'{""polymers"":0.22422999999999998}'::jsonb),
+(37,'Agrocheminių medžiagų atliekos',1286,'{""polymers"":0.9409099999999999,""resins"":0.0317}'::jsonb),
+(38,'Kalcis / Calcium',1286,'{""polymers"":0.22379,""resins"":0.022}'::jsonb),
+(39,'1-Methylfluorene',16508,'{""polymers"":0.01271,""resins"":0.01271}'::jsonb),
+(40,'HpCDD',16508,'{""polymers"":0.32965}'::jsonb),
+(41,'HxCDF',16508,'{""polymers"":0.50934}'::jsonb),
+(42,'Benzo(e)pyrene',1286,'{""polymers"":0.03077}'::jsonb),
+(43,'Benzo(k)fluoranthene',1286,'{""polymers"":0.027600000000000003}'::jsonb),
+(44,'Retene',16508,'{""polymers"":0.19634000000000001}'::jsonb),
+(45,'Aliuminis / Aluminium',16508,'{""polymers"":0.02199}'::jsonb),
+(46,'Baris / Barium',16508,'{""polymers"":0.23459}'::jsonb),
+(47,'Geležis / Iron',16508,'{""polymers"":0.45931}'::jsonb),
+(48,'Švinas / Lead',16508,'{""polymers"":0.25982}'::jsonb),
+(49,'Nikelis / Nickel',16508,'{""polymers"":0.47274}'::jsonb),
+(50,'Selenas/ Selenium',16508,'{""polymers"":0.28378}'::jsonb),
+(51,'Titanas / Titanium',16508,'{""polymers"":0.06705}'::jsonb),
+(52,'Vanadis / Vanadium',16508,'{""polymers"":0.39377999999999996}'::jsonb),
+(53,'Susidarę teršalai /',16508,'{""polymers"":1.38503}'::jsonb),
+(54,'Cinkas / Zinc',16508,'{""polymers"":0.28668}'::jsonb),
+(55,'Dibenz(a,h)anthracene',1286,'{""polymers"":0.03014}'::jsonb),
+(56,'Aromatiniai junginiai',16508,'{""polymers"":0.05891}'::jsonb),
+(57,'1,1’ Biphenyl, methyl',16508,'{""polymers"":0.7049}'::jsonb),
+(58,'1h Fluorene',16508,'{""polymers"":0.45659}'::jsonb),
+(59,'Heterocikliniai',1286,'{""polymers"":0.21513}'::jsonb),
+(60,'Benzodiazine',16508,'{""polymers"":0.6499199999999999,""resins"":0.041}'::jsonb),
+(61,'Benzofuran',1286,'{""polymers"":0.12172}'::jsonb),
+(62,'Benzsisothiazole',1286,'{""polymers"":0.3348}'::jsonb),
+(63,'Cyclopentadiene',28,'{""resins"":0.096}'::jsonb),
+(64,'Kitos medienos atliekos',16508,'{""resins"":0.322}'::jsonb),
+(65,'175-560',16508,'{""resins"":0.082}'::jsonb),
+(66,'5,2-13',16508,'{""resins"":0.006}'::jsonb),
+(67,'144-160',1286,'{""polymers"":0.32205,""resins"":0.104}'::jsonb),
+(68,'843-1136 (CO2); 88 (CH3SH)',1286,'{""resins"":0.017}'::jsonb),
+(69,'Dihydroindene',28,'{""resins"":0.077}'::jsonb),
+(70,'LOJ / VOC',1286,'{""resins"":0.013}'::jsonb),
+(71,'Dimethyl naphthalene',28,'{""resins"":0.039}'::jsonb),
+(72,'discarded inorganic chemicals consisting of or containing hazardous substances',315396,'{""paper"":88}'::jsonb),
+(73,'Ethenyl dimethyl benzene',16508,'{""resins"":0.014}'::jsonb),
+(74,'Smulkios mišrios cheminės atliekos',NULL,'{""plastics"":0.0022,""resins"":0.189}'::jsonb),
+(75,'other waste from mechanical waste treatment after the treatment of waste batteries and accumulators',NULL,'{""plastics"":0.0009}'::jsonb),
+(76,'PAA / PAH',1286,'{""polymers"":0.49085,""resins"":1.623}'::jsonb),
+(77,'Antracene',1286,'{""polymers"":0.29919999999999997}'::jsonb),
+(78,'Metalai /Metals',1286,'{""polymers"":2.3855999999999997,""resins"":0.01}'::jsonb),
+(79,'Metilmerkaptanas CH3SH',16508,'{""polymers"":0.18949000000000002,""resins"":0.0024}'::jsonb),
+(80,'Phenanthrene',16508,'{""polymers"":0.31507999999999997}'::jsonb),
+(81,'CO',315396,'{""polymers"":0.25273,""resins"":0.0228}'::jsonb),
+(82,'NOx',315396,'{""polymers"":0.2656,""resins"":0.015}'::jsonb),
+(83,'HCN',315396,'{""polymers"":0.46335000000000004,""resins"":0.02}'::jsonb),
+(84,'HCl',315396,'{""polymers"":0.15349000000000002,""resins"":0.0147}'::jsonb),
+(85,'Wood',315396,'{""resins"":0.004}'::jsonb),
+(86,'Paper',315396,'{""polymers"":0.10371,""resins"":0.005}'::jsonb),
+(87,'Textiles',315396,'{""polymers"":0.09483,""resins"":0.009}'::jsonb),
+(88,'Arsenas / Arsenic',315396,'{""polymers"":0.18309999999999998,""resins"":0.007}'::jsonb),
+(89,'PCDD/F',315396,'{""polymers"":0.2818,""resins"":0.007}'::jsonb),
+(90,'PVC',315396,'{""polymers"":0.1738,""resins"":0.005}'::jsonb),
+(91,'Varis / Cooper',315396,'{""polymers"":0.16084,""resins"":0.00361}'::jsonb),
+(92,'Naphthalene',315396,'{""polymers"":0.08638,""resins"":0.005}'::jsonb),
+(93,'2,5-Dimethylbenzaldehyde',315396,'{""polymers"":0.0545}'::jsonb),
+(94,'Benzo(b)fluoranthene',1286,'{""polymers"":0.15528}'::jsonb),
+(95,'Silicis / Silicon',315396,'{""polymers"":0.01075}'::jsonb),
+(96,'1-Methyl naphthalene',1286,'{""polymers"":0.0268}'::jsonb),
+(97,'Biphenyl',1286,'{""polymers"":0.31626}'::jsonb),
+(98,'Pyrene',315396,'{""polymers"":0.01743}'::jsonb),
+(99,'Benzo(a,b)fluorine',315396,'{""polymers"":0.040600000000000004}'::jsonb),
+(100,'Benzo(a)anthracene',315396,'{""polymers"":0.91491}'::jsonb),
+(101,'Chrysene',315396,'{""polymers"":0.05037}'::jsonb),
+(102,'Benzo(a)pyrene',315396,'{""polymers"":0.15166}'::jsonb),
+(103,'Indeno(1,2,3-cd)pyrene',315396,'{""polymers"":0.01052}'::jsonb),
+(104,'Benzothiophene',315396,'{""polymers"":0.02111}'::jsonb),
+(105,'Kiti rūšiavimo likučiai',315396,'{""polymers"":1.0000000000000001e-7,""plastics"":8e-8,""resins"":4.280000000000001e-7,""textile"":1.0000000000000001e-7}'::jsonb),
+(106,'Polyuretane',NULL,'{""resins"":7.07e-8}'::jsonb),
+(107,'Polyethylene',NULL,'{""resins"":1.34e-7}'::jsonb);
+SELECT setval(pg_get_serial_sequence('emission_compounds','id'),107);");
+        }
+
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(name: "emission_compounds");
+            migrationBuilder.DropTable(name: "waste_types");
+        }
+    }
+}

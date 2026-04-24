@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import EventWindDispersion from './EventWindDispersion';
 import L from 'leaflet';
 import leafletImage from 'leaflet-image';
 import 'leaflet/dist/leaflet.css';
@@ -37,6 +38,7 @@ const CalculationReview = () => {
   const [recalculating, setRecalculating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
+  const [showDispersion, setShowDispersion] = useState(false);
 
   useEffect(() => {
     fetchAll();
@@ -218,6 +220,21 @@ const CalculationReview = () => {
           <button onClick={handleDownloadPdf} disabled={downloading}>
             {downloading ? 'Generuojama...' : 'Atsisiųsti PDF'}
           </button>
+        )}
+      </div>
+
+      {/* Wind dispersion section */}
+      <div style={{ marginTop: '28px', borderTop: '2px solid #e5e7eb', paddingTop: '16px' }}>
+        <button
+          onClick={() => setShowDispersion(v => !v)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', color: '#1d4ed8', padding: 0 }}
+        >
+          {showDispersion ? '▼' : '▶'} Vėjo sklaidos modeliavimas
+        </button>
+        {showDispersion && (
+          <div style={{ marginTop: '16px' }}>
+            <EventWindDispersion breakdown={breakdown} eventData={eventData} />
+          </div>
         )}
       </div>
     </div>

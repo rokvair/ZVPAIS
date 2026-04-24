@@ -13,7 +13,8 @@ const MaterialForm = () => {
     toxicityFactor: '',
     unit: '',
     baseRate: '',
-    substanceType: 'standard'
+    substanceType: 'standard',
+    emissionCategory: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +30,8 @@ const MaterialForm = () => {
             toxicityFactor: m.toxicityFactor ?? '',
             unit: m.unit || '',
             baseRate: m.baseRate ?? '',
-            substanceType: m.substanceType || 'standard'
+            substanceType: m.substanceType || 'standard',
+            emissionCategory: m.emissionCategory || ''
           });
         } catch (error) {
           console.error(error);
@@ -53,7 +55,8 @@ const MaterialForm = () => {
         toxicityFactor: formData.toxicityFactor ? parseFloat(formData.toxicityFactor) : null,
         unit: formData.unit,
         baseRate: formData.baseRate ? parseFloat(formData.baseRate) : null,
-        substanceType: formData.substanceType || 'standard'
+        substanceType: formData.substanceType || 'standard',
+        emissionCategory: formData.emissionCategory || null
       };
       if (isEditing) {
         await api.put(`/materials/${id}`, payload);
@@ -100,6 +103,18 @@ const MaterialForm = () => {
             <option value="bds7">BDS₇</option>
             <option value="suspended">Suspenduotos medžiagos</option>
           </select>
+        </div>
+        <div>
+          <label>Emisijų kategorija (vėjo sklaidai):</label>
+          <select name="emissionCategory" value={formData.emissionCategory} onChange={handleChange}>
+            <option value="">— nenaudojama sklaidai —</option>
+            <option value="polymers">Polimerai (polymers)</option>
+            <option value="plastics">Plastikai (plastics)</option>
+            <option value="resins">Dervos (resins)</option>
+            <option value="paper">Popierius / kartonas (paper)</option>
+            <option value="textile">Tekstilė (textile)</option>
+          </select>
+          <small style={{ color: '#888' }}>Nustato emisijų faktorių šiai medžiagai gaisro sklaidoje.</small>
         </div>
         <button type="submit" disabled={loading}>{loading ? 'Saugoma...' : 'Išsaugoti'}</button>
         <button type="button" onClick={() => navigate('/materials')}>Atšaukti</button>

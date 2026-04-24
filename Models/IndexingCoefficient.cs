@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ŽVPAIS_API.Models
 {
-    // I_n — CPI-based indexing coefficient updated quarterly per methodology §6.
+    // I_n: CPI-based indexing coefficient updated quarterly per methodology section 6.
     [Table("indexing_coefficients")]
     public class IndexingCoefficient
     {
@@ -14,7 +14,7 @@ namespace ŽVPAIS_API.Models
         [Column("year")]
         public int Year { get; set; }
 
-        // 1–4
+        // Quarter of the year, values 1 to 4.
         [Column("quarter")]
         public int Quarter { get; set; }
 

@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const eventTypeLabel = {
-  gaisas: 'Gaisras',
+  gaisras: 'Gaisras',
   'medžiagų išsiliejimas': 'Medžiagų išsiliejimas',
   stichija: 'Stichija'
 };

@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const TYPE_COLORS = {
-  gaisas: '#e53935',
+  gaisras: '#e53935',
   'medžiagų išsiliejimas': '#fb8c00',
   stichija: '#43a047',
 };
@@ -184,7 +184,7 @@ const EventManagement = () => {
       <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
         <select value={filterType} onChange={e => setFilterType(e.target.value)}>
           <option value="">Visi tipai</option>
-          <option value="gaisas">Gaisras</option>
+          <option value="gaisras">Gaisras</option>
           <option value="medžiagų išsiliejimas">Medžiagų išsiliejimas</option>
           <option value="stichija">Stichija</option>
         </select>

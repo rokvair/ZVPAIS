@@ -24,6 +24,10 @@ namespace ŽVPAIS_API.Services
                 configuration.GetValue<int>("EventProcessing:DelayMinutes", 60));
         }
 
+        /// <summary>
+        /// Background loop that polls for unprocessed "naujas" events older than the configured delay,
+        /// runs damage calculation, creates a DamageEvaluation record, and advances status to "laukia peržiūros".
+        /// </summary>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("EventProcessingService started. Delay: {Delay}, Poll: {Poll}",
@@ -84,13 +88,13 @@ namespace ŽVPAIS_API.Services
                         CreatedAt = DateTime.UtcNow
                     });
 
-                    // Step 3: advance status → awaiting specialist review
+                    // Step 3: advance status to awaiting specialist review
                     ev.Status = "laukia peržiūros";
                     ev.UpdatedAt = DateTimeOffset.UtcNow;
 
                     await db.SaveChangesAsync(ct);
 
-                    _logger.LogInformation("Event #{Id} processed. Damage: {Damage} EUR. Status → laukia peržiūros",
+                    _logger.LogInformation("Event #{Id} processed. Damage: {Damage} EUR. Status: laukia peržiūros",
                         ev.IdEvent, breakdown.TotalDamage);
                 }
                 catch (Exception ex)
