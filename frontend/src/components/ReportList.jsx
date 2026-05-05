@@ -124,7 +124,8 @@ const ReportList = () => {
       {reports.length === 0 ? (
         <p style={{ marginTop: '16px' }}>{t('reports_none')}</p>
       ) : (
-        <table border="1" cellPadding="8" style={{ marginTop: '20px', width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto', marginTop: '20px' }}>
+        <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
           <thead>
             <tr>
               <th>ID</th>
@@ -184,6 +185,7 @@ const ReportList = () => {
             })}
           </tbody>
         </table>
+        </div>
       )}
 
       {pdfJob && (
