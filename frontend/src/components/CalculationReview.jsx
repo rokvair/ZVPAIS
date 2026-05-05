@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import EventWindDispersion from './EventWindDispersion';
@@ -7,6 +7,7 @@ import leafletImage from 'leaflet-image';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -30,6 +31,7 @@ function FitPolygon({ polygon }) {
 const CalculationReview = () => {
   const { id } = useParams();
   const { isSpecialist } = useAuth();
+  const { t } = useLanguage();
   const mapRef = useRef(null);
 
   const [breakdown, setBreakdown] = useState(null);
@@ -40,9 +42,10 @@ const CalculationReview = () => {
   const [error, setError] = useState('');
   const [showDispersion, setShowDispersion] = useState(false);
 
-  useEffect(() => {
-    fetchAll();
-  }, [id]);
+  const componentLabel = (type) => ({ water: t('calc_comp_water'), soil: t('calc_comp_soil'), air: t('calc_comp_air') }[type] || type);
+  const substanceLabel = (type) => ({ standard: t('mat_standard'), bds7: t('mat_bds7'), suspended: t('mat_suspended') }[type] || '-');
+
+  useEffect(() => { fetchAll(); }, [id]);
 
   const fetchAll = async () => {
     try {
@@ -55,7 +58,7 @@ const CalculationReview = () => {
       setEventData(eventRes.data);
       setError('');
     } catch (err) {
-      setError('Nepavyko gauti skaičiavimo duomenų.');
+      setError(t('calc_load_error'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -63,13 +66,13 @@ const CalculationReview = () => {
   };
 
   const handleRecalculate = async () => {
-    if (!window.confirm('Perskaičiuoti žalą ir išsaugoti naują vertinimą?')) return;
+    if (!window.confirm(t('calc_confirm_recalc'))) return;
     try {
       setRecalculating(true);
       const res = await api.post(`/calculation/event/${id}/recalculate`);
       setBreakdown(res.data);
     } catch (err) {
-      alert('Klaida perskaičiuojant žalą.');
+      alert(t('calc_recalc_error'));
       console.error(err);
     } finally {
       setRecalculating(false);
@@ -94,7 +97,7 @@ const CalculationReview = () => {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       } catch {
-        alert('Klaida generuojant PDF.');
+        alert(t('calc_pdf_error'));
       } finally {
         setDownloading(false);
       }
@@ -111,7 +114,7 @@ const CalculationReview = () => {
     }
   };
 
-  if (loading) return <div>Kraunama...</div>;
+  if (loading) return <div>{t('loading')}</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
   if (!breakdown) return null;
 
@@ -121,16 +124,16 @@ const CalculationReview = () => {
   return (
     <div style={{ maxWidth: '900px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-        <Link to="/events">← Grįžti</Link>
+        <Link to="/events">{t('calc_back')}</Link>
         <h2 style={{ margin: 0 }}>Žalos skaičiavimas — Įvykis #{breakdown.eventId}</h2>
       </div>
 
       <div style={{ marginBottom: '12px', color: '#555' }}>
-        Indeksavimo koeficientas (I_n): <strong>{breakdown.indexingCoefficient}</strong>
+        {t('calc_in_label')} <strong>{breakdown.indexingCoefficient}</strong>
       </div>
 
       {breakdown.objects.length === 0 ? (
-        <p>Šiam įvykiui nėra objektų su medžiagomis ir tarifais.</p>
+        <p>{t('calc_no_objects')}</p>
       ) : (
         breakdown.objects.map(obj => (
           <div key={obj.objectId} style={{ marginBottom: '24px', border: '1px solid #ddd', borderRadius: '4px', padding: '12px' }}>
@@ -142,14 +145,14 @@ const CalculationReview = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
               <thead>
                 <tr style={{ background: '#f5f5f5' }}>
-                  <th style={th}>Medžiaga</th>
-                  <th style={th}>Tipas</th>
-                  <th style={th}>T_n (€/t)</th>
+                  <th style={th}>{t('calc_mat_col')}</th>
+                  <th style={th}>{t('calc_type_col')}</th>
+                  <th style={th}>T_n (EUR/t)</th>
                   <th style={th}>I_n</th>
                   <th style={th}>Q_n (t)</th>
                   <th style={th}>K_kat</th>
-                  <th style={th}>Taršos dydis</th>
-                  <th style={th}>Z_n (€)</th>
+                  <th style={th}>{t('calc_pollution_size')}</th>
+                  <th style={th}>Z_n (EUR)</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,9 +171,9 @@ const CalculationReview = () => {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={6} style={{ ...td, textAlign: 'right', fontWeight: 'bold' }}>Objekto suma:</td>
+                  <td colSpan={6} style={{ ...td, textAlign: 'right', fontWeight: 'bold' }}>{t('calc_obj_total')}</td>
                   <td style={{ ...td, fontWeight: 'bold', color: '#555' }}>{Number(obj.objectPollutionSize).toFixed(2)}</td>
-                  <td style={{ ...td, fontWeight: 'bold', color: '#c00' }}>{Number(obj.objectDamage).toFixed(2)} €</td>
+                  <td style={{ ...td, fontWeight: 'bold', color: '#c00' }}>{Number(obj.objectDamage).toFixed(2)} EUR</td>
                 </tr>
               </tfoot>
             </table>
@@ -180,17 +183,16 @@ const CalculationReview = () => {
 
       <div style={{ textAlign: 'right', marginTop: '8px' }}>
         <div style={{ color: '#555', marginBottom: '4px' }}>
-          Bendras taršos dydis: <strong>{Number(breakdown.totalPollutionSize).toFixed(2)}</strong>
+          {t('calc_total_pollution')} <strong>{Number(breakdown.totalPollutionSize).toFixed(2)}</strong>
         </div>
         <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
-          Bendra žala: <span style={{ color: '#c00' }}>{Number(breakdown.totalDamage).toFixed(2)} €</span>
+          {t('calc_total_damage')} <span style={{ color: '#c00' }}>{Number(breakdown.totalDamage).toFixed(2)} EUR</span>
         </div>
       </div>
 
-      {/* Map preview */}
       {geoJsonData && (
         <div style={{ marginTop: '24px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Paveiktos teritorijos žemėlapis</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>{t('calc_map_title')}</div>
           <MapContainer
             ref={mapRef}
             center={[55.0, 24.0]}
@@ -213,38 +215,36 @@ const CalculationReview = () => {
       <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
         {isSpecialist && (
           <button onClick={handleRecalculate} disabled={recalculating}>
-            {recalculating ? 'Perskaičiuojama...' : 'Perskaičiuoti ir išsaugoti'}
+            {recalculating ? t('calc_recalculating') : t('calc_recalc_btn')}
           </button>
         )}
         {eventData?.status !== 'naujas' && (
           <button onClick={handleDownloadPdf} disabled={downloading}>
-            {downloading ? 'Generuojama...' : 'Atsisiųsti PDF'}
+            {downloading ? t('calc_generating') : t('calc_download_pdf')}
           </button>
         )}
       </div>
 
-      {/* Wind dispersion section — fires only */}
-      {eventData?.eventType === 'gaisras' && <div style={{ marginTop: '28px', borderTop: '2px solid #e5e7eb', paddingTop: '16px' }}>
-        <button
-          onClick={() => setShowDispersion(v => !v)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', color: '#1d4ed8', padding: 0 }}
-        >
-          {showDispersion ? '▼' : '▶'} Vėjo sklaidos modeliavimas
-        </button>
-        {showDispersion && (
-          <div style={{ marginTop: '16px' }}>
-            <EventWindDispersion breakdown={breakdown} eventData={eventData} />
-          </div>
-        )}
-      </div>}
+      {['gaisras', 'gaisas'].includes(eventData?.eventType) && (
+        <div style={{ marginTop: '28px', borderTop: '2px solid #e5e7eb', paddingTop: '16px' }}>
+          <button
+            onClick={() => setShowDispersion(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', color: '#1d4ed8', padding: 0 }}
+          >
+            {showDispersion ? '▼' : '▶'} {t('calc_wind_section')}
+          </button>
+          {showDispersion && (
+            <div style={{ marginTop: '16px' }}>
+              <EventWindDispersion breakdown={breakdown} eventData={eventData} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 const th = { padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #ddd' };
 const td = { padding: '6px 10px', borderBottom: '1px solid #eee' };
-
-const componentLabel = (t) => ({ water: 'Vanduo', soil: 'Žemė', air: 'Oras' }[t] || t);
-const substanceLabel = (t) => ({ standard: 'Standartinis', bds7: 'BDS₇', suspended: 'Suspenduotos' }[t] || '–');
 
 export default CalculationReview;

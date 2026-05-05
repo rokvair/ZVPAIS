@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -11,33 +12,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const STABILITY_CLASSES = [
-  { value: 'A', label: 'A – labai nestabili (saulėta, silpnas vėjas)' },
-  { value: 'B', label: 'B – nestabili' },
-  { value: 'C', label: 'C – silpnai nestabili' },
-  { value: 'D', label: 'D – neutrali (apsiniaukę / naktis)' },
-  { value: 'E', label: 'E – silpnai stabili' },
-  { value: 'F', label: 'F – stabili (aiški naktis, silpnas vėjas)' },
-];
-
 const CONC_BANDS = [
   { min: 0,      max: 1,        color: '#ffffcc', label: '< 1' },
-  { min: 1,      max: 10,       color: '#a1dab4', label: '1 – 10' },
-  { min: 10,     max: 100,      color: '#41b6c4', label: '10 – 100' },
-  { min: 100,    max: 1000,     color: '#2c7fb8', label: '100 – 1 000' },
-  { min: 1000,   max: 10000,    color: '#f97316', label: '1 000 – 10 000' },
-  { min: 10000,  max: Infinity, color: '#dc2626', label: '≥ 10 000' },
+  { min: 1,      max: 10,       color: '#a1dab4', label: '1 - 10' },
+  { min: 10,     max: 100,      color: '#41b6c4', label: '10 - 100' },
+  { min: 100,    max: 1000,     color: '#2c7fb8', label: '100 - 1 000' },
+  { min: 1000,   max: 10000,    color: '#f97316', label: '1 000 - 10 000' },
+  { min: 10000,  max: Infinity, color: '#dc2626', label: '>= 10 000' },
 ];
 
 function getConcColor(ugM3) {
-  for (const b of CONC_BANDS) {
-    if (ugM3 >= b.min && ugM3 < b.max) return b.color;
-  }
+  for (const b of CONC_BANDS) if (ugM3 >= b.min && ugM3 < b.max) return b.color;
   return '#dc2626';
 }
 
-// Converts plume-coordinate offset (downwind, crosswind metres) to absolute [lat, lon].
-// windDirectionDeg is FROM which direction the wind blows (meteorological convention, e.g. 270 = from west, plume goes east).
 function offsetToLatLon(fireLat, fireLon, xM, yM, windFromDeg) {
   const downwindDeg = (windFromDeg + 180) % 360;
   const downwindRad = (downwindDeg * Math.PI) / 180;
@@ -48,28 +36,20 @@ function offsetToLatLon(fireLat, fireLon, xM, yM, windFromDeg) {
   return [lat, lon];
 }
 
-// Lets user click the map to set fire location
 function LocationPicker({ onPick, enabled }) {
-  const map = useMapEvents({
-    click(e) {
-      if (enabled) onPick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  useEffect(() => {
-    map.getContainer().style.cursor = enabled ? 'crosshair' : '';
-  }, [enabled, map]);
+  const map = useMapEvents({ click(e) { if (enabled) onPick(e.latlng.lat, e.latlng.lng); } });
+  useEffect(() => { map.getContainer().style.cursor = enabled ? 'crosshair' : ''; }, [enabled, map]);
   return null;
 }
 
 function RecenterMap({ center }) {
   const map = useMap();
-  useEffect(() => {
-    if (center) map.setView(center, map.getZoom());
-  }, [center, map]);
+  useEffect(() => { if (center) map.setView(center, map.getZoom()); }, [center, map]);
   return null;
 }
 
 export default function WindDispersion() {
+  const { t } = useLanguage();
   const [wasteTypes, setWasteTypes] = useState([]);
   const [form, setForm] = useState({
     wasteTypeId: '',
@@ -87,6 +67,15 @@ export default function WindDispersion() {
   const [selectedCompoundId, setSelectedCompoundId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const STABILITY_CLASSES = [
+    { value: 'A', label: t('stab_A_long') },
+    { value: 'B', label: t('stab_B') },
+    { value: 'C', label: t('stab_C') },
+    { value: 'D', label: t('stab_D_long') },
+    { value: 'E', label: t('stab_E') },
+    { value: 'F', label: t('stab_F_long') },
+  ];
 
   useEffect(() => {
     api.get('/wind-dispersion/waste-types').then(r => setWasteTypes(r.data)).catch(() => {});
@@ -107,10 +96,8 @@ export default function WindDispersion() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    if (!form.wasteTypeId) { setError('Pasirinkite atliekų tipą.'); return; }
-    setLoading(true);
-    setError('');
-    setResult(null);
+    if (!form.wasteTypeId) { setError(t('wind_waste_select')); return; }
+    setLoading(true); setError(''); setResult(null);
     try {
       const res = await api.post('/wind-dispersion/calculate', {
         wasteTypeId: Number(form.wasteTypeId),
@@ -127,8 +114,7 @@ export default function WindDispersion() {
       setSelectedCompoundId(res.data.compounds[0]?.compoundId ?? null);
     } catch (err) {
       const d = err.response?.data;
-      const msg = typeof d === 'string' ? d : d?.title || d?.detail || err.message || 'Klaida atliekant skaičiavimą.';
-      setError(msg);
+      setError(typeof d === 'string' ? d : d?.title || d?.detail || err.message || t('wind_calc_error'));
     } finally {
       setLoading(false);
     }
@@ -139,59 +125,54 @@ export default function WindDispersion() {
 
   return (
     <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-      {/* ── Left panel: form ── */}
       <div style={{ minWidth: 320, flex: '0 0 340px' }}>
-        <h2 style={{ marginTop: 0 }}>Vėjo sklaidos modelis</h2>
-        <p style={{ fontSize: '0.82rem', color: '#666', marginTop: 0 }}>
-          Gauso sklaidos modelis (Pasquill–Gifford). Pasirinkite gaisro vietą žemėlapyje ir parametrus.
-        </p>
+        <h2 style={{ marginTop: 0 }}>{t('wind_title')}</h2>
+        <p style={{ fontSize: '0.82rem', color: '#666', marginTop: 0 }}>{t('wind_subtitle')}</p>
 
         <form onSubmit={handleSubmit}>
-          <label>Atliekų tipas (EWC kodas)</label>
+          <label>{t('wind_waste_type')}</label>
           <select name="wasteTypeId" value={form.wasteTypeId} onChange={handleChange} required>
-            <option value="">-- pasirinkite --</option>
+            <option value="">{t('wind_waste_select')}</option>
             {wasteTypes.map(w => (
               <option key={w.id} value={w.id}>
-                {w.ewcCode} – {w.description.length > 55 ? w.description.slice(0, 55) + '…' : w.description}
+                {w.ewcCode} - {w.description.length > 55 ? w.description.slice(0, 55) + '...' : w.description}
               </option>
             ))}
           </select>
-          <small style={{ color: '#888', display: 'block', marginTop: 2 }}>
-            Degančių medžiagų emisijas turi: popieriaus/plastiko/tekstilės/polimerų atliekos.
-          </small>
+          <small style={{ color: '#888', display: 'block', marginTop: 2 }}>{t('wind_waste_hint')}</small>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
             <div>
-              <label>Masė (t)</label>
+              <label>{t('wind_mass')}</label>
               <input type="number" name="totalMassTonnes" min="0.01" step="0.1" value={form.totalMassTonnes} onChange={handleChange} />
             </div>
             <div>
-              <label>Trukmė (val.)</label>
+              <label>{t('wind_duration')}</label>
               <input type="number" name="fireDurationHours" min="0.1" step="0.1" value={form.fireDurationHours} onChange={handleChange} />
             </div>
             <div>
-              <label>Vėjo greitis (m/s)</label>
+              <label>{t('wind_speed')}</label>
               <input type="number" name="windSpeedMs" min="0.5" max="30" step="0.5" value={form.windSpeedMs} onChange={handleChange} />
             </div>
             <div>
-              <label>Vėjo kryptis (°)</label>
+              <label>{t('wind_direction')}</label>
               <input type="number" name="windDirectionDeg" min="0" max="359" step="1" value={form.windDirectionDeg} onChange={handleChange} />
-              <small style={{ color: '#888' }}>Iš kurios pučia (0=N, 90=E, 270=W)</small>
+              <small style={{ color: '#888' }}>{t('wind_dir_hint')}</small>
             </div>
             <div>
-              <label>Šaltinio aukštis (m)</label>
+              <label>{t('wind_source_height')}</label>
               <input type="number" name="sourceHeightM" min="0" max="200" step="1" value={form.sourceHeightM} onChange={handleChange} />
             </div>
           </div>
 
-          <label style={{ marginTop: '0.5rem', display: 'block' }}>Atmosferos stabilumo klasė</label>
+          <label style={{ marginTop: '0.5rem', display: 'block' }}>{t('wind_stability')}</label>
           <select name="stabilityClass" value={form.stabilityClass} onChange={handleChange}>
             {STABILITY_CLASSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
 
           <div style={{ marginTop: '0.75rem', padding: '0.5rem', background: '#f5f5f5', borderRadius: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <strong style={{ fontSize: '0.85rem' }}>Gaisro vieta</strong>
+              <strong style={{ fontSize: '0.85rem' }}>{t('wind_fire_location')}</strong>
               <button
                 type="button"
                 onClick={() => setPickingLocation(p => !p)}
@@ -202,16 +183,16 @@ export default function WindDispersion() {
                   border: 'none', borderRadius: 4, cursor: 'pointer',
                 }}
               >
-                {pickingLocation ? '↕ Spustelėkite žemėlapyje…' : '📍 Parinkti žemėlapyje'}
+                {pickingLocation ? t('wind_picking') : t('wind_pick_map')}
               </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               <div>
-                <label>Platuma</label>
+                <label>{t('wind_lat')}</label>
                 <input type="number" name="fireLat" step="0.0001" value={form.fireLat} onChange={handleChange} />
               </div>
               <div>
-                <label>Ilguma</label>
+                <label>{t('wind_lon')}</label>
                 <input type="number" name="fireLon" step="0.0001" value={form.fireLon} onChange={handleChange} />
               </div>
             </div>
@@ -219,13 +200,12 @@ export default function WindDispersion() {
 
           {error && <div className="error-message" style={{ marginTop: '0.5rem' }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ marginTop: '0.75rem', width: '100%' }}>
-            {loading ? 'Skaičiuojama…' : 'Skaičiuoti sklaidą'}
+            {loading ? t('wind_calculating') : t('wind_calculate')}
           </button>
         </form>
 
-        {/* Legend */}
         <div style={{ marginTop: '1rem' }}>
-          <strong style={{ fontSize: '0.85rem' }}>Koncentracija (µg/m³)</strong>
+          <strong style={{ fontSize: '0.85rem' }}>{t('wind_conc_legend')}</strong>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 }}>
             {CONC_BANDS.map(b => (
               <div key={b.min} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
@@ -237,9 +217,7 @@ export default function WindDispersion() {
         </div>
       </div>
 
-      {/* ── Right panel: map + results table ── */}
       <div style={{ flex: '1 1 500px', minWidth: 300 }}>
-        {/* Map */}
         <div style={{ height: 420, borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', marginBottom: '1rem' }}>
           <MapContainer center={mapCenter} zoom={11} style={{ height: '100%' }}>
             <TileLayer
@@ -248,80 +226,65 @@ export default function WindDispersion() {
             />
             <LocationPicker onPick={handleMapPick} enabled={pickingLocation} />
             <RecenterMap center={result ? [result.fireLat, result.fireLon] : null} />
-
-            {/* Fire location marker */}
             <Marker position={mapCenter} />
-
-            {/* Concentration dots */}
             {result && selectedCompound && selectedCompound.gridPoints.map((pt, i) => {
               const [lat, lon] = offsetToLatLon(result.fireLat, result.fireLon, pt.downwindM, pt.crosswindM, result.windDirectionDeg);
               if (!isFinite(lat) || !isFinite(lon)) return null;
               const color = getConcColor(pt.concentrationUgM3);
               return (
-                <CircleMarker
-                  key={i}
-                  center={[lat, lon]}
-                  radius={5}
-                  pathOptions={{ color, fillColor: color, fillOpacity: 0.8, weight: 0 }}
-                />
+                <CircleMarker key={i} center={[lat, lon]} radius={5}
+                  pathOptions={{ color, fillColor: color, fillOpacity: 0.8, weight: 0 }} />
               );
             })}
           </MapContainer>
         </div>
 
-        {/* Results table */}
         {result && (
-          <>
-            {result.compounds.length === 0 ? (
-              <div style={{ padding: '1rem', background: '#fff8e1', border: '1px solid #f9a825', borderRadius: 6 }}>
-                <strong>Emisijų nerasta.</strong> Pasirinktas atliekų tipas neturi degimo emisijų junginiams su turimais EF koeficientais.
-                Pasirinkite atliekas, kurių morfologijoje yra: <em>polymers, plastics, paper, textile</em>.
-              </div>
-            ) : (
-              <>
-                <p style={{ fontSize: '0.82rem', margin: '0 0 0.5rem' }}>
-                  Rasta <strong>{result.compounds.length}</strong> junginių su emisijomis.
-                  {result.compounds.length > 20 && ' Rodomi pirmi 20.'}
-                  &nbsp;Vėjas: <strong>{result.windSpeedMs} m/s</strong> iš <strong>{result.windDirectionDeg}°</strong>, klasė <strong>{result.stabilityClass}</strong>.
-                </p>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', fontSize: '0.82rem', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f0f0f0' }}>
-                        <th style={{ textAlign: 'left', padding: '4px 8px' }}>Junginys</th>
-                        <th style={{ textAlign: 'right', padding: '4px 8px' }}>Q (g/s)</th>
-                        <th style={{ textAlign: 'right', padding: '4px 8px' }}>T_n (€/t)</th>
-                        <th style={{ textAlign: 'center', padding: '4px 8px' }}>Žemėlapis</th>
+          result.compounds.length === 0 ? (
+            <div style={{ padding: '1rem', background: '#fff8e1', border: '1px solid #f9a825', borderRadius: 6 }}>
+              <strong>{t('wind_no_emissions')}</strong>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize: '0.82rem', margin: '0 0 0.5rem' }}>
+                <strong>{result.compounds.length}</strong> {t('wind_compound_col').toLowerCase()}.
+                {result.compounds.length > 20 && ' (20)'}
+                {' '}{t('wind_speed').toLowerCase()}: <strong>{result.windSpeedMs} m/s</strong>,{' '}
+                <strong>{result.windDirectionDeg}°</strong>, {result.stabilityClass}.
+              </p>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: '0.82rem', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#f0f0f0' }}>
+                      <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('wind_compound_col')}</th>
+                      <th style={{ textAlign: 'right', padding: '4px 8px' }}>Q (g/s)</th>
+                      <th style={{ textAlign: 'right', padding: '4px 8px' }}>T_n (EUR/t)</th>
+                      <th style={{ textAlign: 'center', padding: '4px 8px' }}>{t('wind_map_col')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.compounds.slice(0, 20).map(c => (
+                      <tr key={c.compoundId}
+                        style={{ background: c.compoundId === selectedCompoundId ? '#e8f4fd' : 'white', cursor: 'pointer' }}
+                        onClick={() => setSelectedCompoundId(c.compoundId)}>
+                        <td style={{ padding: '4px 8px' }}>{c.compoundName}</td>
+                        <td style={{ textAlign: 'right', padding: '4px 8px' }}>{c.emissionRateGs.toExponential(2)}</td>
+                        <td style={{ textAlign: 'right', padding: '4px 8px' }}>
+                          {c.baseRate != null ? c.baseRate.toLocaleString() : '-'}
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '4px 8px' }}>
+                          <button style={{ fontSize: '0.75rem', padding: '1px 6px' }}
+                            onClick={e => { e.stopPropagation(); setSelectedCompoundId(c.compoundId); }}>
+                            ●
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {result.compounds.slice(0, 20).map(c => (
-                        <tr
-                          key={c.compoundId}
-                          style={{ background: c.compoundId === selectedCompoundId ? '#e8f4fd' : 'white', cursor: 'pointer' }}
-                          onClick={() => setSelectedCompoundId(c.compoundId)}
-                        >
-                          <td style={{ padding: '4px 8px' }}>{c.compoundName}</td>
-                          <td style={{ textAlign: 'right', padding: '4px 8px' }}>{c.emissionRateGs.toExponential(2)}</td>
-                          <td style={{ textAlign: 'right', padding: '4px 8px' }}>
-                            {c.baseRate != null ? c.baseRate.toLocaleString() : '–'}
-                          </td>
-                          <td style={{ textAlign: 'center', padding: '4px 8px' }}>
-                            <button
-                              style={{ fontSize: '0.75rem', padding: '1px 6px' }}
-                              onClick={e => { e.stopPropagation(); setSelectedCompoundId(c.compoundId); }}
-                            >
-                              ●
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )
         )}
       </div>
     </div>

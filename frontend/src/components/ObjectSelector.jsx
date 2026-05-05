@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
-// selectedEventObjects: [{objectId, componentType, kKat}]
-// onEventObjectsChange: (updatedList) => void
 const ObjectSelector = ({ selectedEventObjects, onEventObjectsChange, specialistMode = false }) => {
+  const { t } = useLanguage();
   const [objects, setObjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,7 +13,7 @@ const ObjectSelector = ({ selectedEventObjects, onEventObjectsChange, specialist
         const response = await api.get('/environmentobjects');
         setObjects(response.data);
       } catch (error) {
-        console.error('Klaida kraunant objektus:', error);
+        console.error('Error loading objects:', error);
       } finally {
         setLoading(false);
       }
@@ -41,11 +41,11 @@ const ObjectSelector = ({ selectedEventObjects, onEventObjectsChange, specialist
     ));
   };
 
-  if (loading) return <div>Kraunami objektai...</div>;
+  if (loading) return <div>{t('obj_loading')}</div>;
 
   return (
     <div>
-      <h3>Objektai</h3>
+      <h3>{t('obj_section_title')}</h3>
       {objects.map(obj => (
         <div key={obj.idObject} style={{ marginBottom: '8px' }}>
           <label>
@@ -59,16 +59,16 @@ const ObjectSelector = ({ selectedEventObjects, onEventObjectsChange, specialist
           {isSelected(obj.idObject) && specialistMode && (
             <span style={{ marginLeft: '16px' }}>
               <label>
-                Komponentas:{' '}
+                {t('obj_component_label')}{' '}
                 <select
                   value={getEntry(obj.idObject).componentType}
                   onChange={(e) => handleFieldChange(obj.idObject, 'componentType', e.target.value)}
                   style={{ marginRight: '12px' }}
                 >
-                  <option value="">— Nepasirinkta —</option>
-                  <option value="water">Vanduo</option>
-                  <option value="soil">Žemė</option>
-                  <option value="air">Oras</option>
+                  <option value="">{t('obj_component_none')}</option>
+                  <option value="water">{t('obj_comp_water')}</option>
+                  <option value="soil">{t('obj_comp_soil')}</option>
+                  <option value="air">{t('obj_comp_air')}</option>
                 </select>
               </label>
               <label>

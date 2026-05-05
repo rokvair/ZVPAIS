@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ŽVPAIS_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0ccd713f73912bd2436a0ed3b65fc633e731aeed")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0e8d6cd6d348a1f4f08e3ecf984528d52895c31a")]
 [assembly: System.Reflection.AssemblyProductAttribute("ŽVPAIS_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ŽVPAIS_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

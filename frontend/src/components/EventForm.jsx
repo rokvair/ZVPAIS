@@ -4,12 +4,14 @@ import api from '../services/api';
 import PolygonPicker from './PolygonPicker';
 import ObjectSelector from './ObjectSelector';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const EventForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
   const { isSpecialist } = useAuth();
+  const { t } = useLanguage();
 
   const [formData, setFormData] = useState({
     eventType: 'gaisras',
@@ -49,7 +51,7 @@ const EventForm = () => {
           }
           setDataLoaded(true);
         } catch (err) {
-          setFetchError('Nepavyko gauti įvykio duomenų.');
+          setFetchError(t('event_fetch_error'));
           console.error(err);
         } finally {
           setLoading(false);
@@ -70,7 +72,7 @@ const EventForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.polygon) {
-      alert('Prašome pažymėti paveiktą teritoriją žemėlapyje.');
+      alert(t('event_no_polygon'));
       return;
     }
 
@@ -93,7 +95,7 @@ const EventForm = () => {
       }
       navigate('/events');
     } catch (err) {
-      setSubmitError('Klaida išsaugant įvykį.');
+      setSubmitError(t('event_save_error'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -104,40 +106,40 @@ const EventForm = () => {
 
   return (
     <div>
-      <h2>{isEditing ? 'Redaguoti įvykį' : 'Naujas įvykis'}</h2>
+      <h2>{isEditing ? t('event_edit_title') : t('event_new_title')}</h2>
       {submitError && <div style={{ color: 'red', marginBottom: '8px' }}>{submitError}</div>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Tipas:</label>
+          <label>{t('event_type_label')}</label>
           <select name="eventType" value={formData.eventType} onChange={handleChange} required>
-            <option value="gaisras">Gaisras</option>
-            <option value="medžiagų išsiliejimas">Medžiagų išsiliejimas</option>
-            <option value="stichija">Stichija</option>
+            <option value="gaisras">{t('event_type_fire')}</option>
+            <option value="medžiagų išsiliejimas">{t('event_type_spill')}</option>
+            <option value="stichija">{t('event_type_disaster')}</option>
           </select>
         </div>
 
         <div>
-          <label>Data:</label>
+          <label>{t('event_date_label')}</label>
           <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required />
         </div>
 
         <div>
-          <label>Aprašymas:</label>
+          <label>{t('event_desc_label')}</label>
           <textarea name="description" value={formData.description} onChange={handleChange} rows="3" />
         </div>
 
         <div>
-          <label>Vieta (tekstas):</label>
+          <label>{t('event_loc_label')}</label>
           <input type="text" name="location" value={formData.location} onChange={handleChange} />
         </div>
 
         <div>
-          <label>Pažymėkite paveiktą teritoriją:</label>
+          <label>{t('event_mark_area')}</label>
           {dataLoaded
             ? <PolygonPicker onPolygonChange={handlePolygonChange} initialPolygon={formData.polygon} />
-            : <div>Kraunama žemėlapį...</div>
+            : <div>{t('event_loading_map')}</div>
           }
-          {formData.polygon && <div>Teritorija pažymėta.</div>}
+          {formData.polygon && <div>{t('event_area_marked')}</div>}
         </div>
 
         <ObjectSelector
@@ -147,9 +149,9 @@ const EventForm = () => {
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Saugoma...' : (isEditing ? 'Atnaujinti' : 'Sukurti')}
+          {loading ? t('saving') : (isEditing ? t('update') : t('create'))}
         </button>
-        <button type="button" onClick={() => navigate('/events')}>Atšaukti</button>
+        <button type="button" onClick={() => navigate('/events')}>{t('cancel')}</button>
       </form>
     </div>
   );

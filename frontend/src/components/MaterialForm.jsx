@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const MaterialForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const isEditing = !!id;
 
   const [formData, setFormData] = useState({
@@ -65,7 +67,7 @@ const MaterialForm = () => {
       }
       navigate('/materials');
     } catch (error) {
-      alert('Klaida išsaugant medžiagą.');
+      alert(t('mat_save_error'));
       console.error(error);
     } finally {
       setLoading(false);
@@ -74,50 +76,57 @@ const MaterialForm = () => {
 
   return (
     <div>
-      <h2>{isEditing ? 'Redaguoti medžiagą' : 'Nauja medžiaga'}</h2>
+      <h2>{isEditing ? t('mat_edit_title') : t('mat_new_title')}</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Pavadinimas:</label>
+          <label>{t('mat_name_label')}</label>
           <input name="name" value={formData.name} onChange={handleChange} required />
         </div>
         <div>
-          <label>Aprašymas:</label>
+          <label>{t('mat_desc_label')}</label>
           <textarea name="description" value={formData.description} onChange={handleChange} />
         </div>
         <div>
-          <label>Toksiškumo faktorius:</label>
+          <label>{t('mat_toxicity_label')}</label>
           <input type="number" step="0.01" name="toxicityFactor" value={formData.toxicityFactor} onChange={handleChange} />
         </div>
         <div>
-          <label>Vienetas:</label>
+          <label>{t('mat_unit_label')}</label>
           <input name="unit" value={formData.unit} onChange={handleChange} />
         </div>
         <div>
-          <label>Bazinis tarifas T_n (EUR/t):</label>
+          <label>{t('mat_baserate_label')}</label>
           <input type="number" step="0.01" name="baseRate" value={formData.baseRate} onChange={handleChange} />
         </div>
         <div>
-          <label>Medžiagos tipas:</label>
+          <label>{t('mat_type_label')}</label>
           <select name="substanceType" value={formData.substanceType} onChange={handleChange}>
-            <option value="standard">Standartinis</option>
-            <option value="bds7">BDS₇</option>
-            <option value="suspended">Suspenduotos medžiagos</option>
+            <option value="standard">{t('mat_standard')}</option>
+            <option value="bds7">{t('mat_bds7')}</option>
+            <option value="suspended">{t('mat_suspended_long')}</option>
           </select>
         </div>
         <div>
-          <label>Emisijų kategorija (vėjo sklaidai):</label>
+          <label>{t('mat_emission_label')}</label>
           <select name="emissionCategory" value={formData.emissionCategory} onChange={handleChange}>
-            <option value="">— nenaudojama sklaidai —</option>
-            <option value="polymers">Polimerai (polymers)</option>
-            <option value="plastics">Plastikai (plastics)</option>
-            <option value="resins">Dervos (resins)</option>
-            <option value="paper">Popierius / kartonas (paper)</option>
-            <option value="textile">Tekstilė (textile)</option>
+            <option value="">{t('mat_emission_none')}</option>
+            <option value="polymers">{t('mat_polymers')}</option>
+            <option value="plastics">{t('mat_plastics')}</option>
+            <option value="resins">{t('mat_resins')}</option>
+            <option value="paper">{t('mat_paper_long')}</option>
+            <option value="textile">{t('mat_textile')}</option>
+            <option value="wood">{t('mat_wood')}</option>
+            <option value="oil">{t('mat_oil')}</option>
+            <option value="rubber">{t('mat_rubber')}</option>
+            <option value="liquid_fuel">{t('mat_liquid_fuel')}</option>
+            <option value="carbon">{t('mat_carbon')}</option>
+            <option value="halogenated">{t('mat_halogenated')}</option>
+            <option value="liquid_organic">{t('mat_liquid_organic')}</option>
           </select>
-          <small style={{ color: '#888' }}>Nustato emisijų faktorių šiai medžiagai gaisro sklaidoje.</small>
+          <small style={{ color: '#888' }}>{t('mat_emission_hint')}</small>
         </div>
-        <button type="submit" disabled={loading}>{loading ? 'Saugoma...' : 'Išsaugoti'}</button>
-        <button type="button" onClick={() => navigate('/materials')}>Atšaukti</button>
+        <button type="submit" disabled={loading}>{loading ? t('saving') : t('save')}</button>
+        <button type="button" onClick={() => navigate('/materials')}>{t('cancel')}</button>
       </form>
     </div>
   );

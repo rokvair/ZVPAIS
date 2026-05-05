@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const ObjectMaterialManager = ({ objectId }) => {
+  const { t } = useLanguage();
   const [materials, setMaterials] = useState([]);
   const [allMaterials, setAllMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,29 +57,29 @@ const ObjectMaterialManager = ({ objectId }) => {
       setShowAddForm(false);
       fetchObjectMaterials();
     } catch (error) {
-      const msg = error.response?.data || 'Klaida pridedant medžiagą.';
+      const msg = error.response?.data || t('obj_mat_add_error');
       alert(typeof msg === 'string' ? msg : JSON.stringify(msg));
       console.error(error);
     }
   };
 
   const handleRemoveMaterial = async (materialId) => {
-    if (!window.confirm('Pašalinti šią medžiagą?')) return;
+    if (!window.confirm(t('obj_mat_confirm_remove'))) return;
     try {
       await api.delete(`/environmentobjects/${objectId}/materials/${materialId}`);
       fetchObjectMaterials();
     } catch (error) {
-      alert('Klaida šalinant medžiagą');
+      alert(t('obj_mat_remove_error'));
       console.error(error);
     }
   };
 
-  if (loading) return <div>Kraunama...</div>;
+  if (loading) return <div>{t('loading')}</div>;
 
   return (
     <div>
       {materials.length === 0 ? (
-        <p>Šis objektas neturi medžiagų.</p>
+        <p>{t('obj_mat_no_materials')}</p>
       ) : (
         <ul>
           {materials.map(m => (
@@ -86,9 +88,9 @@ const ObjectMaterialManager = ({ objectId }) => {
               {m.percentage !== null && `${m.percentage}%`}
               {m.mass !== null && ` ${m.mass} t`}
               {m.volume !== null && ` ${m.volume} m³`}
-              {m.recoveredQuantity != null && ` (susigrąžinta: ${m.recoveredQuantity} t)`}
+              {m.recoveredQuantity != null && ` (${t('obj_mat_recovered_inline')}: ${m.recoveredQuantity} t)`}
               <button onClick={() => handleRemoveMaterial(m.materialId)} style={{ marginLeft: '10px' }}>
-                Pašalinti
+                {t('remove')}
               </button>
             </li>
           ))}
@@ -96,7 +98,7 @@ const ObjectMaterialManager = ({ objectId }) => {
       )}
 
       {!showAddForm ? (
-        <button onClick={() => setShowAddForm(true)}>Pridėti medžiagą</button>
+        <button onClick={() => setShowAddForm(true)}>{t('obj_mat_add_btn')}</button>
       ) : (
         <form onSubmit={handleAddMaterial} style={{ marginTop: '10px' }}>
           <select
@@ -104,41 +106,41 @@ const ObjectMaterialManager = ({ objectId }) => {
             onChange={(e) => setSelectedMaterialId(e.target.value)}
             required
           >
-            <option value="">Pasirinkite medžiagą</option>
+            <option value="">{t('obj_mat_select')}</option>
             {allMaterials.map(m => (
               <option key={m.idMaterial} value={m.idMaterial}>{m.name}</option>
             ))}
           </select>
           <input
             type="number"
-            placeholder="Procentas (%)"
+            placeholder={t('obj_mat_pct')}
             value={percentage}
             onChange={e => setPercentage(e.target.value)}
             step="any"
           />
           <input
             type="number"
-            placeholder="Masė (t)"
+            placeholder={t('obj_mat_mass')}
             value={mass}
             onChange={e => setMass(e.target.value)}
             step="any"
           />
           <input
             type="number"
-            placeholder="Tūris (m³)"
+            placeholder={t('obj_mat_vol')}
             value={volume}
             onChange={e => setVolume(e.target.value)}
             step="any"
           />
           <input
             type="number"
-            placeholder="Susigrąžinta (t)"
+            placeholder={t('obj_mat_recovered')}
             value={recoveredQuantity}
             onChange={e => setRecoveredQuantity(e.target.value)}
             step="any"
           />
-          <button type="submit">Išsaugoti</button>
-          <button type="button" onClick={() => setShowAddForm(false)}>Atšaukti</button>
+          <button type="submit">{t('save')}</button>
+          <button type="button" onClick={() => setShowAddForm(false)}>{t('cancel')}</button>
         </form>
       )}
     </div>

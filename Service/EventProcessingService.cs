@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ŽVPAIS_API.Data;
 using ŽVPAIS_API.Models;
 
@@ -18,16 +18,18 @@ namespace ŽVPAIS_API.Services
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
-            _pollingInterval = TimeSpan.FromMinutes(
-                configuration.GetValue<int>("EventProcessing:PollingIntervalMinutes", 5));
+
+            // DEMO: polling every 5 s, no delay — revert appsettings to DelayMinutes=60, PollingIntervalMinutes=5 (remove PollingIntervalSeconds) after demo
+            var seconds = configuration.GetValue<int>("EventProcessing:PollingIntervalSeconds", 0);
+            var minutes = configuration.GetValue<int>("EventProcessing:PollingIntervalMinutes", 5);
+            _pollingInterval = seconds > 0
+                ? TimeSpan.FromSeconds(seconds)
+                : TimeSpan.FromMinutes(minutes > 0 ? minutes : 1);
+
             _processingDelay = TimeSpan.FromMinutes(
-                configuration.GetValue<int>("EventProcessing:DelayMinutes", 60));
+                configuration.GetValue<int>("EventProcessing:DelayMinutes", 0));
         }
 
-        /// <summary>
-        /// Background loop that polls for unprocessed "naujas" events older than the configured delay,
-        /// runs damage calculation, creates a DamageEvaluation record, and advances status to "laukia peržiūros".
-        /// </summary>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("EventProcessingService started. Delay: {Delay}, Poll: {Poll}",
@@ -65,7 +67,6 @@ namespace ŽVPAIS_API.Services
                 {
                     _logger.LogInformation("Auto-processing event #{Id} ({Type})", ev.IdEvent, ev.EventType);
 
-                    // Skip if a report already exists (guards against duplicate on transient DB failure)
                     if (await db.DamageEvaluations.AnyAsync(r => r.EventId == ev.IdEvent, ct))
                     {
                         ev.Status = "laukia peržiūros";
@@ -74,10 +75,8 @@ namespace ŽVPAIS_API.Services
                         continue;
                     }
 
-                    // Step 1: run damage + pollution calculation
                     var breakdown = await calcService.CalculateBreakdownForEvent(ev.IdEvent);
 
-                    // Step 2: persist the report
                     db.DamageEvaluations.Add(new DamageEvaluation
                     {
                         EventId = ev.IdEvent,
@@ -88,7 +87,6 @@ namespace ŽVPAIS_API.Services
                         CreatedAt = DateTime.UtcNow
                     });
 
-                    // Step 3: advance status to awaiting specialist review
                     ev.Status = "laukia peržiūros";
                     ev.UpdatedAt = DateTimeOffset.UtcNow;
 

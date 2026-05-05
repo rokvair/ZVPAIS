@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: '',
@@ -28,7 +30,7 @@ export default function RegisterPage() {
       await register(form);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data || 'Registracijos klaida.');
+      setError(err.response?.data || t('register_error'));
     } finally {
       setLoading(false);
     }
@@ -37,11 +39,11 @@ export default function RegisterPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Registracija</h2>
+        <h2>{t('register_title')}</h2>
         {error && <div className="auth-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div>
-            <label>El. paštas</label>
+            <label>{t('login_email')}</label>
             <input
               type="email"
               name="email"
@@ -52,7 +54,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label>Slaptažodis</label>
+            <label>{t('login_password')}</label>
             <input
               type="password"
               name="password"
@@ -70,12 +72,12 @@ export default function RegisterPage() {
               checked={form.isSpecialist}
               onChange={handleChange}
             />
-            <label htmlFor="isSpecialist">Registruotis kaip specialistas</label>
+            <label htmlFor="isSpecialist">{t('register_as_specialist')}</label>
           </div>
           {form.isSpecialist && (
             <>
               <div>
-                <label>Vardas *</label>
+                <label>{t('register_name')}</label>
                 <input
                   type="text"
                   name="name"
@@ -85,7 +87,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label>Specializacija</label>
+                <label>{t('register_field')}</label>
                 <input
                   type="text"
                   name="fieldOfExpertise"
@@ -96,11 +98,11 @@ export default function RegisterPage() {
             </>
           )}
           <button type="submit" disabled={loading} className="auth-btn">
-            {loading ? 'Registruojama...' : 'Registruotis'}
+            {loading ? t('register_registering') : t('register_btn')}
           </button>
         </form>
         <p className="auth-link">
-          Jau turite paskyrą? <Link to="/login">Prisijungti</Link>
+          {t('register_have_account')} <Link to="/login">{t('nav_login')}</Link>
         </p>
       </div>
     </div>

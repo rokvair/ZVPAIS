@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const ReportForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const isEditing = !!id;
 
   const [events, setEvents] = useState([]);
@@ -38,7 +40,7 @@ const ReportForm = () => {
           });
         }
       } catch (err) {
-        setError('Nepavyko gauti duomenų.');
+        setError(t('report_fetch_error'));
         console.error(err);
       } finally {
         setFetching(false);
@@ -56,7 +58,7 @@ const ReportForm = () => {
     setFormData(prev => ({ ...prev, eventId }));
     if (!eventId) return;
 
-    setAutoCalcStatus('Skaičiuojama...');
+    setAutoCalcStatus(t('report_calc_fetching'));
     try {
       const res = await api.get(`/calculation/event/${eventId}`);
       const total = res.data.totalDamage;
@@ -66,16 +68,16 @@ const ReportForm = () => {
         zalosDydis: total != null ? String(Number(total).toFixed(4)) : prev.zalosDydis,
         piniginisDydis: total != null ? String(Number(total).toFixed(4)) : prev.piniginisDydis
       }));
-      setAutoCalcStatus(total != null ? `Automatiškai užpildyta: ${Number(total).toFixed(2)} EUR` : 'Skaičiavimo duomenų nėra.');
+      setAutoCalcStatus(total != null ? `${t('report_auto_filled')}: ${Number(total).toFixed(2)} EUR` : t('report_no_calc'));
     } catch {
-      setAutoCalcStatus('Nepavyko gauti skaičiavimo (galite įvesti rankiniu būdu).');
+      setAutoCalcStatus(t('report_calc_error'));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.eventId) {
-      alert('Pasirinkite įvykį.');
+      alert(t('report_select_alert'));
       return;
     }
     try {
@@ -94,22 +96,22 @@ const ReportForm = () => {
       }
       navigate('/reports');
     } catch (err) {
-      setError('Klaida išsaugant ataskaitą.');
+      setError(t('report_save_error'));
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <div>Kraunama...</div>;
+  if (fetching) return <div>{t('loading')}</div>;
 
   return (
     <div>
-      <h2>{isEditing ? 'Redaguoti ataskaitą' : 'Nauja žalos vertinimo ataskaita'}</h2>
+      <h2>{isEditing ? t('report_edit_title') : t('report_new_title')}</h2>
       {error && <div style={{ color: 'red', marginBottom: '12px' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Įvykis:</label>
+          <label>{t('report_event_label')}</label>
           <select
             name="eventId"
             value={formData.eventId}
@@ -117,7 +119,7 @@ const ReportForm = () => {
             required
             style={{ marginLeft: '8px' }}
           >
-            <option value="">— Pasirinkite įvykį —</option>
+            <option value="">{t('report_event_select')}</option>
             {events.map(ev => (
               <option key={ev.idEvent} value={ev.idEvent}>
                 [{ev.idEvent}] {ev.eventType} — {new Date(ev.eventDate).toLocaleDateString('lt-LT')} {ev.location ? `(${ev.location})` : ''}
@@ -125,14 +127,14 @@ const ReportForm = () => {
             ))}
           </select>
           {autoCalcStatus && (
-            <span style={{ marginLeft: '12px', color: autoCalcStatus.startsWith('Automatiškai') ? 'green' : '#888', fontSize: '0.9em' }}>
+            <span style={{ marginLeft: '12px', color: autoCalcStatus.startsWith(t('report_auto_filled')) ? 'green' : '#888', fontSize: '0.9em' }}>
               {autoCalcStatus}
             </span>
           )}
         </div>
 
         <div style={{ marginTop: '12px' }}>
-          <label>Vertinimo data:</label>
+          <label>{t('report_assess_label')}</label>
           <input
             type="date"
             name="data"
@@ -144,7 +146,7 @@ const ReportForm = () => {
         </div>
 
         <div style={{ marginTop: '12px' }}>
-          <label>Žalos dydis (EUR):</label>
+          <label>{t('report_damage_label')}</label>
           <input
             type="number"
             step="0.0001"
@@ -158,7 +160,7 @@ const ReportForm = () => {
         </div>
 
         <div style={{ marginTop: '12px' }}>
-          <label>Piniginis dydis (EUR):</label>
+          <label>{t('report_monetary_label')}</label>
           <input
             type="number"
             step="0.0001"
@@ -172,7 +174,7 @@ const ReportForm = () => {
         </div>
 
         <div style={{ marginTop: '12px' }}>
-          <label>Pastabos:</label>
+          <label>{t('report_notes_label')}</label>
           <textarea
             name="notes"
             value={formData.notes}
@@ -184,10 +186,10 @@ const ReportForm = () => {
 
         <div style={{ marginTop: '16px' }}>
           <button type="submit" disabled={loading}>
-            {loading ? 'Saugoma...' : (isEditing ? 'Atnaujinti' : 'Sukurti')}
+            {loading ? t('saving') : (isEditing ? t('update') : t('create'))}
           </button>
           <button type="button" onClick={() => navigate('/reports')} style={{ marginLeft: '8px' }}>
-            Atšaukti
+            {t('cancel')}
           </button>
         </div>
       </form>

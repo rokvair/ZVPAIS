@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const empty = { year: new Date().getFullYear(), quarter: 1, coefficient: '' };
 
 const IndexingCoefficientManager = () => {
+  const { t } = useLanguage();
   const [coefficients, setCoefficients] = useState([]);
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
@@ -20,7 +22,7 @@ const IndexingCoefficientManager = () => {
       const res = await api.get('/calculation/indexing-coefficients');
       setCoefficients(res.data);
     } catch (err) {
-      setError('Nepavyko gauti koeficientų.');
+      setError(t('idx_fetch_error'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -63,7 +65,7 @@ const IndexingCoefficientManager = () => {
       }
       cancelEdit();
     } catch (err) {
-      setError(err.response?.data || 'Klaida išsaugant koeficientą.');
+      setError(err.response?.data || t('idx_save_error'));
       console.error(err);
     } finally {
       setSaving(false);
@@ -71,31 +73,28 @@ const IndexingCoefficientManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Trinti šį koeficientą?')) return;
+    if (!window.confirm(t('idx_delete_confirm'))) return;
     try {
       await api.delete(`/calculation/indexing-coefficients/${id}`);
       setCoefficients(coefficients.filter(c => c.idIndexingCoefficient !== id));
     } catch (err) {
-      alert('Klaida trinant koeficientą.');
+      alert(t('idx_delete_error'));
       console.error(err);
     }
   };
 
-  if (loading) return <div>Kraunama...</div>;
+  if (loading) return <div>{t('loading')}</div>;
 
   return (
     <div>
-      <h2>Indeksavimo koeficientai (I_n)</h2>
-      <p style={{ color: '#555', maxWidth: '600px' }}>
-        I_n — ketvirčio indeksavimo koeficientas pagal metodiką. Skaičiavime naudojamas naujausias įrašas.
-        Jei lentelė tuščia, naudojama reikšmė 1.0.
-      </p>
+      <h2>{t('idx_title')}</h2>
+      <p style={{ color: '#555', maxWidth: '600px' }}>{t('idx_description')}</p>
 
-      <h3 style={{ marginTop: '24px' }}>{editingId ? 'Redaguoti koeficientą' : 'Pridėti naują koeficientą'}</h3>
+      <h3 style={{ marginTop: '24px' }}>{editingId ? t('idx_edit_title') : t('idx_add_title')}</h3>
       {error && <div style={{ color: 'red', marginBottom: '8px' }}>{error}</div>}
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '0.85em' }}>Metai</label>
+          <label style={{ display: 'block', fontSize: '0.85em' }}>{t('idx_year')}</label>
           <input
             type="number"
             name="year"
@@ -108,7 +107,7 @@ const IndexingCoefficientManager = () => {
           />
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.85em' }}>Ketvirtis</label>
+          <label style={{ display: 'block', fontSize: '0.85em' }}>{t('idx_quarter')}</label>
           <select name="quarter" value={form.quarter} onChange={handleChange} required>
             <option value={1}>I</option>
             <option value={2}>II</option>
@@ -117,7 +116,7 @@ const IndexingCoefficientManager = () => {
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.85em' }}>Koeficientas (I_n)</label>
+          <label style={{ display: 'block', fontSize: '0.85em' }}>{t('idx_coeff')}</label>
           <input
             type="number"
             name="coefficient"
@@ -131,24 +130,24 @@ const IndexingCoefficientManager = () => {
           />
         </div>
         <button type="submit" disabled={saving}>
-          {saving ? 'Saugoma...' : (editingId ? 'Atnaujinti' : 'Pridėti')}
+          {saving ? t('saving') : (editingId ? t('update') : t('add'))}
         </button>
         {editingId && (
-          <button type="button" onClick={cancelEdit}>Atšaukti</button>
+          <button type="button" onClick={cancelEdit}>{t('cancel')}</button>
         )}
       </form>
 
       {coefficients.length === 0 ? (
-        <p style={{ marginTop: '20px', color: '#888' }}>Nėra įrašų. Skaičiavime naudojama I_n = 1.0.</p>
+        <p style={{ marginTop: '20px', color: '#888' }}>{t('idx_none')}</p>
       ) : (
         <table border="1" cellPadding="8" style={{ marginTop: '20px', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th>Metai</th>
-              <th>Ketvirtis</th>
+              <th>{t('idx_year')}</th>
+              <th>{t('idx_quarter')}</th>
               <th>I_n</th>
-              <th>Įvesta</th>
-              <th>Veiksmai</th>
+              <th>{t('idx_added_col')}</th>
+              <th>{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -159,8 +158,8 @@ const IndexingCoefficientManager = () => {
                 <td><strong>{Number(c.coefficient).toFixed(4)}</strong></td>
                 <td>{new Date(c.createdAt).toLocaleDateString('lt-LT')}</td>
                 <td>
-                  <button onClick={() => startEdit(c)} style={{ marginRight: '6px' }}>Redaguoti</button>
-                  <button onClick={() => handleDelete(c.idIndexingCoefficient)}>Trinti</button>
+                  <button onClick={() => startEdit(c)} style={{ marginRight: '6px' }}>{t('edit')}</button>
+                  <button onClick={() => handleDelete(c.idIndexingCoefficient)}>{t('delete')}</button>
                 </td>
               </tr>
             ))}
@@ -169,7 +168,7 @@ const IndexingCoefficientManager = () => {
       )}
       {coefficients.length > 0 && (
         <p style={{ fontSize: '0.85em', color: '#666', marginTop: '6px' }}>
-          Žalia eilutė — šiuo metu naudojamas koeficientas skaičiavime.
+          {t('idx_green_hint')}
         </p>
       )}
     </div>

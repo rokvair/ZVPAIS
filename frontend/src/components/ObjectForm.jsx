@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import ObjectMaterialManager from './ObjectMaterialManager';
+import { useLanguage } from '../context/LanguageContext';
 
 const ObjectForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const isEditing = !!id;
 
   const [name, setName] = useState('');
@@ -47,7 +49,7 @@ const ObjectForm = () => {
         setSavedId(newId);
       }
     } catch (error) {
-      alert('Klaida išsaugant objektą.');
+      alert(t('obj_save_error'));
       console.error(error);
     } finally {
       setLoading(false);
@@ -56,10 +58,10 @@ const ObjectForm = () => {
 
   return (
     <div>
-      <h2>{isEditing ? 'Redaguoti objektą' : 'Naujas objektas'}</h2>
+      <h2>{isEditing ? t('obj_edit_title') : t('obj_new_title')}</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Pavadinimas:</label>
+          <label>{t('obj_name_label')}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -68,7 +70,7 @@ const ObjectForm = () => {
           />
         </div>
         <div style={{ marginTop: '8px' }}>
-          <label>Aprašymas:</label>
+          <label>{t('obj_desc_label')}</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -77,10 +79,10 @@ const ObjectForm = () => {
           />
         </div>
         <div style={{ marginTop: '8px', color: '#666', fontSize: '0.85em' }}>
-          Užpildykite, jei medžiagos nurodomos procentais:
+          {t('obj_pct_hint')}
         </div>
         <div style={{ marginTop: '4px' }}>
-          <label>Bendras svoris (t):</label>
+          <label>{t('obj_total_mass_label')}</label>
           <input
             type="number"
             step="any"
@@ -90,7 +92,7 @@ const ObjectForm = () => {
             placeholder="pvz. 5.0"
             style={{ marginLeft: '8px', width: '120px' }}
           />
-          <label style={{ marginLeft: '16px' }}>Bendras tūris (m³):</label>
+          <label style={{ marginLeft: '16px' }}>{t('obj_total_vol_label')}</label>
           <input
             type="number"
             step="any"
@@ -104,17 +106,17 @@ const ObjectForm = () => {
 
         <div style={{ marginTop: '12px' }}>
           <button type="submit" disabled={loading}>
-            {loading ? 'Saugoma...' : (isEditing ? 'Atnaujinti' : 'Sukurti ir pridėti medžiagas')}
+            {loading ? t('saving') : (isEditing ? t('update') : t('obj_create_btn'))}
           </button>
           <button type="button" onClick={() => navigate('/objects')} style={{ marginLeft: '8px' }}>
-            {savedId ? 'Grįžti į sąrašą' : 'Atšaukti'}
+            {savedId ? t('obj_back_to_list') : t('cancel')}
           </button>
         </div>
       </form>
 
       {savedId && (
         <div style={{ marginTop: '30px', borderTop: '1px solid #ccc', paddingTop: '20px' }}>
-          <h3>Objekto medžiagos</h3>
+          <h3>{t('obj_materials_section')}</h3>
           <ObjectMaterialManager objectId={savedId} />
         </div>
       )}

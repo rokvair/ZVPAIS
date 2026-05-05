@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Polygon, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -11,34 +12,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const STABILITY_CLASSES = [
-  { value: 'A', label: 'A – labai nestabili' },
-  { value: 'B', label: 'B – nestabili' },
-  { value: 'C', label: 'C – silpnai nestabili' },
-  { value: 'D', label: 'D – neutrali' },
-  { value: 'E', label: 'E – silpnai stabili' },
-  { value: 'F', label: 'F – stabili' },
-];
-
 const CONC_BANDS = [
   { min: 0,     max: 1,        color: '#c7e9b4', label: '< 1' },
-  { min: 1,     max: 10,       color: '#7fcdbb', label: '1–10' },
-  { min: 10,    max: 100,      color: '#41b6c4', label: '10–100' },
-  { min: 100,   max: 1000,     color: '#2c7fb8', label: '100–1 000' },
-  { min: 1000,  max: 10000,    color: '#f97316', label: '1 000–10 000' },
-  { min: 10000, max: Infinity, color: '#dc2626', label: '≥ 10 000' },
+  { min: 1,     max: 10,       color: '#7fcdbb', label: '1-10' },
+  { min: 10,    max: 100,      color: '#41b6c4', label: '10-100' },
+  { min: 100,   max: 1000,     color: '#2c7fb8', label: '100-1 000' },
+  { min: 1000,  max: 10000,    color: '#f97316', label: '1 000-10 000' },
+  { min: 10000, max: Infinity, color: '#dc2626', label: '>= 10 000' },
 ];
-
-const CATEGORY_LABELS = {
-  polymers: 'Polimerai', plastics: 'Plastikai', resins: 'Dervos', paper: 'Popierius', textile: 'Tekstilė',
-  wood: 'Mediena', oil: 'Alyva/nafta', rubber: 'Guma', liquid_fuel: 'Skystieji degalai',
-  carbon: 'Anglis', halogenated: 'Halogenintieji jk', liquid_organic: 'Lakieji organiniai jk',
-};
-
-function getConcColor(v) {
-  for (const b of CONC_BANDS) if (v >= b.min && v < b.max) return b.color;
-  return '#dc2626';
-}
 
 function polygonCentroid(polygonJson) {
   try {
@@ -77,12 +58,11 @@ function convexHull(points) {
     while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
     upper.push(p);
   }
-  lower.pop();
-  upper.pop();
+  lower.pop(); upper.pop();
   return lower.concat(upper);
 }
 
-function LocationPicker({ onPick, enabled }) {
+function MapLocationPicker({ onPick, enabled }) {
   const map = useMapEvents({ click: e => { if (enabled) onPick(e.latlng.lat, e.latlng.lng); } });
   useEffect(() => { map.getContainer().style.cursor = enabled ? 'crosshair' : ''; }, [enabled, map]);
   return null;
@@ -96,15 +76,6 @@ function FitPolygon({ polygon }) {
   }, [polygon, map]);
   return null;
 }
-
-const STABILITY_DESCRIPTIONS = {
-  A: { text: 'Labai nestabili — stipri saulė, vėjas < 2 m/s (vasaros vidurdienis, giedras dangus)', color: '#dc2626' },
-  B: { text: 'Nestabili — vidutinė saulė, vėjas 2–3 m/s', color: '#ea580c' },
-  C: { text: 'Silpnai nestabili — silpna saulė, vėjas 3–5 m/s', color: '#d97706' },
-  D: { text: 'Neutrali — debesuota arba vėjas > 6 m/s (dažniausia)', color: '#059669' },
-  E: { text: 'Silpnai stabili — giedra naktis, vėjas 2–3 m/s', color: '#0284c7' },
-  F: { text: 'Stabili — giedra naktis, vėjas < 2 m/s (dūmų stulpas lieka žemai)', color: '#7c3aed' },
-};
 
 function deriveStabilityClass(windSpeed, shortwaveRad, cloudCoverPct, isDay) {
   if (isDay) {
@@ -129,7 +100,16 @@ function suggestClass(windSpeed) {
 }
 
 function StabilityHint({ cls, windSpeed }) {
-  const info = STABILITY_DESCRIPTIONS[cls?.toUpperCase()] ?? STABILITY_DESCRIPTIONS.D;
+  const { t } = useLanguage();
+  const descriptions = {
+    A: { text: t('stab_desc_A'), color: '#dc2626' },
+    B: { text: t('stab_desc_B'), color: '#ea580c' },
+    C: { text: t('stab_desc_C'), color: '#d97706' },
+    D: { text: t('stab_desc_D'), color: '#059669' },
+    E: { text: t('stab_desc_E'), color: '#0284c7' },
+    F: { text: t('stab_desc_F'), color: '#7c3aed' },
+  };
+  const info = descriptions[cls?.toUpperCase()] ?? descriptions.D;
   const suggested = suggestClass(windSpeed);
   const mismatch = suggested !== cls?.toUpperCase();
   return (
@@ -137,7 +117,7 @@ function StabilityHint({ cls, windSpeed }) {
       <span>{info.text}</span>
       {mismatch && (
         <span style={{ display: 'block', marginTop: 2, color: '#b45309' }}>
-          ⚠ Pagal vėjo greitį rekomenduojama klasė: <strong>{suggested}</strong>
+          ⚠ {t('stab_recommended')} <strong>{suggested}</strong>
         </span>
       )}
     </div>
@@ -145,7 +125,24 @@ function StabilityHint({ cls, windSpeed }) {
 }
 
 export default function EventWindDispersion({ breakdown, eventData }) {
+  const { t } = useLanguage();
   const centroid = polygonCentroid(eventData?.polygon);
+
+  const STABILITY_CLASSES = [
+    { value: 'A', label: t('stab_A') },
+    { value: 'B', label: t('stab_B') },
+    { value: 'C', label: t('stab_C') },
+    { value: 'D', label: t('stab_D') },
+    { value: 'E', label: t('stab_E') },
+    { value: 'F', label: t('stab_F') },
+  ];
+
+  const CATEGORY_LABELS = {
+    polymers: t('mat_polymers'), plastics: t('mat_plastics'), resins: t('mat_resins'),
+    paper: t('mat_paper'), textile: t('mat_textile'), wood: t('mat_wood'),
+    oil: t('mat_oil'), rubber: t('mat_rubber'), liquid_fuel: t('mat_liquid_fuel'),
+    carbon: t('mat_carbon'), halogenated: t('mat_halogenated'), liquid_organic: t('mat_liquid_organic'),
+  };
 
   const [form, setForm] = useState({
     fireDurationHours: 1,
@@ -156,13 +153,13 @@ export default function EventWindDispersion({ breakdown, eventData }) {
     fireLat: centroid?.lat ?? 54.6872,
     fireLon: centroid?.lon ?? 25.2797,
   });
-  const [picking,    setPicking]    = useState(false);
-  const [result,     setResult]     = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
-  const [loading,    setLoading]    = useState(false);
+  const [picking,     setPicking]     = useState(false);
+  const [result,      setResult]      = useState(null);
+  const [selectedId,  setSelectedId]  = useState(null);
+  const [loading,     setLoading]     = useState(false);
   const [windLoading, setWindLoading] = useState(false);
-  const [error,      setError]      = useState('');
-  const [windMsg,    setWindMsg]    = useState('');
+  const [error,       setError]       = useState('');
+  const [windMsg,     setWindMsg]     = useState('');
 
   useEffect(() => {
     const c = polygonCentroid(eventData?.polygon);
@@ -176,16 +173,15 @@ export default function EventWindDispersion({ breakdown, eventData }) {
     setField(name, name === 'stabilityClass' ? value : (value === '' ? '' : Number(value)));
   };
 
-  // Returns { speed, dir, stabilityClass, date, hour } or throws
   const fetchWindFromApi = async (lat, lon, eventDate) => {
-    if (!eventDate) throw new Error('Nėra įvykio datos.');
+    if (!eventDate) throw new Error(t('wind_no_event_date'));
     const dt = new Date(eventDate);
     const date = dt.toISOString().split('T')[0];
     const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=windspeed_10m,winddirection_10m,shortwave_radiation,cloudcover,is_day&wind_speed_unit=ms&timezone=UTC`;
     const res = await fetch(url);
     if (!res.ok) {
       const txt = await res.text().catch(() => '');
-      throw new Error(`Open-Meteo klaida ${res.status}${txt ? ': ' + txt.slice(0, 120) : ''}`);
+      throw new Error(`Open-Meteo error ${res.status}${txt ? ': ' + txt.slice(0, 120) : ''}`);
     }
     const data = await res.json();
     const hour = dt.getUTCHours();
@@ -194,7 +190,7 @@ export default function EventWindDispersion({ breakdown, eventData }) {
     const radiation  = data.hourly?.shortwave_radiation?.[hour] ?? 0;
     const cloudCover = data.hourly?.cloudcover?.[hour] ?? 50;
     const isDay      = data.hourly?.is_day?.[hour] === 1;
-    if (speed == null || dir == null) throw new Error(`Duomenys nepasiekiami (indeksas ${hour})`);
+    if (speed == null || dir == null) throw new Error(`Data unavailable (index ${hour})`);
     const stabilityClass = deriveStabilityClass(speed, radiation, cloudCover, isDay);
     return { speed: Math.round(speed * 10) / 10, dir: Math.round(dir), stabilityClass, date, hour };
   };
@@ -204,9 +200,9 @@ export default function EventWindDispersion({ breakdown, eventData }) {
     try {
       const { speed, dir, stabilityClass, date, hour } = await fetchWindFromApi(form.fireLat, form.fireLon, eventData?.eventDate);
       setForm(f => ({ ...f, windSpeedMs: speed, windDirectionDeg: dir, stabilityClass }));
-      setWindMsg(`✓ ${date} ${hour}:00 UTC — ${speed} m/s iš ${dir}°, klasė ${stabilityClass}`);
+      setWindMsg(`✓ ${date} ${hour}:00 UTC — ${speed} m/s, ${dir}°, ${stabilityClass}`);
     } catch (err) {
-      setWindMsg(`Klaida: ${err.message}`);
+      setWindMsg(`Error: ${err.message}`);
     } finally { setWindLoading(false); }
   };
 
@@ -214,7 +210,7 @@ export default function EventWindDispersion({ breakdown, eventData }) {
     const f = overrideForm ?? form;
     setLoading(true); setError(''); setResult(null);
     try {
-      if (!eventData?.idEvent) { setError('Nėra įvykio duomenų.'); setLoading(false); return; }
+      if (!eventData?.idEvent) { setError(t('wind_no_event_data')); setLoading(false); return; }
       const res = await api.post(`/wind-dispersion/calculate-from-event/${eventData.idEvent}`, {
         fireDurationHours: Number(f.fireDurationHours),
         windSpeedMs:       Number(f.windSpeedMs),
@@ -228,24 +224,23 @@ export default function EventWindDispersion({ breakdown, eventData }) {
       setSelectedId(res.data.dispersion?.compounds?.[0]?.compoundId ?? null);
     } catch (err) {
       const d = err.response?.data;
-      setError(typeof d === 'string' ? d : d?.title || err.message || 'Klaida skaičiuojant.');
+      setError(typeof d === 'string' ? d : d?.title || err.message || t('wind_calc_error'));
     } finally { setLoading(false); }
   };
 
   const handleSubmit = async e => { e.preventDefault(); await runCalculation(); };
 
-  // Fetch wind data then immediately calculate
   const fetchAndCalculate = async () => {
     setWindLoading(true); setWindMsg(''); setError(''); setResult(null);
     try {
       const { speed, dir, stabilityClass, date, hour } = await fetchWindFromApi(form.fireLat, form.fireLon, eventData?.eventDate);
       const newForm = { ...form, windSpeedMs: speed, windDirectionDeg: dir, stabilityClass };
       setForm(newForm);
-      setWindMsg(`✓ ${date} ${hour}:00 UTC — ${speed} m/s iš ${dir}°, klasė ${stabilityClass}`);
+      setWindMsg(`✓ ${date} ${hour}:00 UTC — ${speed} m/s, ${dir}°, ${stabilityClass}`);
       setWindLoading(false);
       await runCalculation(newForm);
     } catch (err) {
-      setWindMsg(`Klaida: ${err.message}`);
+      setWindMsg(`Error: ${err.message}`);
       setWindLoading(false);
     }
   };
@@ -255,7 +250,6 @@ export default function EventWindDispersion({ breakdown, eventData }) {
   const geoJsonData = (() => { try { return eventData?.polygon ? JSON.parse(eventData.polygon) : null; } catch { return null; } })();
   const mapCenter = [Number(form.fireLat) || 54.6872, Number(form.fireLon) || 25.2797];
 
-  // Material summary from event
   const hasMaterials  = result?.materials?.length > 0;
   const categorized   = result?.materials?.filter(m => m.emissionCategory) ?? [];
   const uncategorized = result?.uncategorizedMaterials ?? [];
@@ -263,17 +257,13 @@ export default function EventWindDispersion({ breakdown, eventData }) {
 
   return (
     <div>
-      {/* Material summary banner */}
       {result && (
         <div style={{ marginBottom: '1rem', padding: '8px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6, fontSize: '0.83rem' }}>
-          <strong>Medžiagos iš įvykio objektų</strong> — bendra masė: <strong>{result.totalMassTonnes} t</strong>
+          <strong>{t('wind_materials_banner')}</strong> — {t('wind_mass').toLowerCase()}: <strong>{result.totalMassTonnes} t</strong>
           {categorized.length > 0 && (
             <div style={{ marginTop: 4 }}>
               {Object.entries(
-                categorized.reduce((acc, m) => {
-                  acc[m.emissionCategory] = (acc[m.emissionCategory] || 0) + m.massTonnes;
-                  return acc;
-                }, {})
+                categorized.reduce((acc, m) => { acc[m.emissionCategory] = (acc[m.emissionCategory] || 0) + m.massTonnes; return acc; }, {})
               ).map(([cat, mass]) => (
                 <span key={cat} style={{ marginRight: 12 }}>
                   <strong>{CATEGORY_LABELS[cat] ?? cat}</strong>: {mass.toFixed(3)} t
@@ -283,56 +273,62 @@ export default function EventWindDispersion({ breakdown, eventData }) {
           )}
           {uncategorized.length > 0 && (
             <div style={{ marginTop: 2, color: '#b45309' }}>
-              ⚠ Be emisijų kategorijos: {uncategorized.join(', ')} — priskirti kategoriją medžiagos formoje.
+              {t('wind_uncategorized')}: {uncategorized.join(', ')} {t('wind_assign_cat')}
             </div>
           )}
           {zeroQty.length > 0 && (
             <div style={{ marginTop: 2, color: '#b45309' }}>
-              ⚠ Nulinė masė (praleista): {zeroQty.join(', ')} — nurodyti masę arba tūrį objekto medžiagų sąraše.
+              {t('wind_zero_qty')}: {zeroQty.join(', ')} {t('wind_assign_qty')}
             </div>
           )}
           {!hasMaterials && (
-            <div style={{ color: '#b45309' }}>⚠ Įvykio objektuose nerasta medžiagų su masėmis.</div>
+            <div style={{ color: '#b45309' }}>{t('wind_no_materials')}</div>
           )}
         </div>
       )}
 
       <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-        {/* ── Form ── */}
         <div style={{ flex: '0 0 280px', minWidth: 250 }}>
           <form onSubmit={handleSubmit}>
-            {/* Wind data fetch */}
             <div style={{ marginBottom: '0.75rem', padding: '8px', background: '#f5f5f5', borderRadius: 6 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <strong style={{ fontSize: '0.85rem' }}>Vėjo duomenys</strong>
+                <strong style={{ fontSize: '0.85rem' }}>{t('wind_data_section')}</strong>
                 <div style={{ display: 'flex', gap: 4 }}>
                   <button type="button" onClick={fetchWindData} disabled={windLoading || loading}
                     style={{ fontSize: '0.75rem', padding: '2px 8px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-                    {windLoading ? '…' : 'Gauti'}
+                    {windLoading ? '...' : t('wind_fetch_btn')}
                   </button>
                   <button type="button" onClick={fetchAndCalculate} disabled={windLoading || loading}
                     style={{ fontSize: '0.75rem', padding: '2px 8px', background: '#059669', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-                    {windLoading || loading ? '…' : 'Gauti ir skaičiuoti'}
+                    {windLoading || loading ? '...' : t('wind_fetch_calc_btn')}
                   </button>
                 </div>
               </div>
               {windMsg && <div style={{ fontSize: '0.75rem', color: windMsg.startsWith('✓') ? '#166534' : '#b45309' }}>{windMsg}</div>}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginTop: '0.4rem' }}>
-                <div><label>Greitis (m/s)</label>
-                  <input type="number" name="windSpeedMs" min="0.5" max="30" step="0.1" value={form.windSpeedMs} onChange={handleChange} /></div>
-                <div><label>Kryptis (°)</label>
-                  <input type="number" name="windDirectionDeg" min="0" max="359" step="1" value={form.windDirectionDeg} onChange={handleChange} /></div>
+                <div>
+                  <label>{t('wind_speed_label')}</label>
+                  <input type="number" name="windSpeedMs" min="0.5" max="30" step="0.1" value={form.windSpeedMs} onChange={handleChange} />
+                </div>
+                <div>
+                  <label>{t('wind_dir_label')}</label>
+                  <input type="number" name="windDirectionDeg" min="0" max="359" step="1" value={form.windDirectionDeg} onChange={handleChange} />
+                </div>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
-              <div><label>Trukmė (val.)</label>
-                <input type="number" name="fireDurationHours" min="0.1" step="0.1" value={form.fireDurationHours} onChange={handleChange} /></div>
-              <div><label>Šaltinio aukštis (m)</label>
-                <input type="number" name="sourceHeightM" min="0" max="200" step="1" value={form.sourceHeightM} onChange={handleChange} /></div>
+              <div>
+                <label>{t('wind_duration')}</label>
+                <input type="number" name="fireDurationHours" min="0.1" step="0.1" value={form.fireDurationHours} onChange={handleChange} />
+              </div>
+              <div>
+                <label>{t('wind_source_height')}</label>
+                <input type="number" name="sourceHeightM" min="0" max="200" step="1" value={form.sourceHeightM} onChange={handleChange} />
+              </div>
             </div>
 
-            <label style={{ marginTop: '0.5rem', display: 'block' }}>Stabilumo klasė</label>
+            <label style={{ marginTop: '0.5rem', display: 'block' }}>{t('wind_stability_label')}</label>
             <select name="stabilityClass" value={form.stabilityClass} onChange={handleChange}>
               {STABILITY_CLASSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
@@ -340,29 +336,32 @@ export default function EventWindDispersion({ breakdown, eventData }) {
 
             <div style={{ marginTop: '0.5rem', background: '#f5f5f5', borderRadius: 6, padding: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <strong style={{ fontSize: '0.85rem' }}>Gaisro vieta</strong>
+                <strong style={{ fontSize: '0.85rem' }}>{t('wind_fire_location')}</strong>
                 <button type="button" onClick={() => setPicking(p => !p)}
                   style={{ fontSize: '0.75rem', padding: '2px 8px', background: picking ? '#2563eb' : '#e5e7eb', color: picking ? '#fff' : '#333', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-                  {picking ? 'Spustelėkite…' : '📍 Žemėlapyje'}
+                  {picking ? t('wind_picking_btn') : t('wind_pick_map_btn')}
                 </button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
-                <div style={{ minWidth: 0 }}><label>Platuma</label>
-                  <input type="number" name="fireLat" step="0.0001" value={form.fireLat} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }} /></div>
-                <div style={{ minWidth: 0 }}><label>Ilguma</label>
-                  <input type="number" name="fireLon" step="0.0001" value={form.fireLon} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }} /></div>
+                <div style={{ minWidth: 0 }}>
+                  <label>{t('wind_lat')}</label>
+                  <input type="number" name="fireLat" step="0.0001" value={form.fireLat} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <label>{t('wind_lon')}</label>
+                  <input type="number" name="fireLon" step="0.0001" value={form.fireLon} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }} />
+                </div>
               </div>
             </div>
 
             {error && <div className="error-message" style={{ marginTop: '0.5rem' }}>{error}</div>}
             <button type="submit" disabled={loading} style={{ marginTop: '0.75rem', width: '100%' }}>
-              {loading ? 'Skaičiuojama…' : 'Skaičiuoti sklaidą'}
+              {loading ? t('wind_calculating') : t('wind_calculate')}
             </button>
           </form>
 
-          {/* Legend */}
           <div style={{ marginTop: '1rem' }}>
-            <strong style={{ fontSize: '0.82rem' }}>Koncentracija (µg/m³)</strong>
+            <strong style={{ fontSize: '0.82rem' }}>{t('wind_conc_legend')}</strong>
             {CONC_BANDS.map(b => (
               <div key={b.min} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.78rem', marginTop: 2 }}>
                 <span style={{ width: 12, height: 12, borderRadius: '50%', background: b.color, display: 'inline-block', border: '1px solid #ccc' }} />
@@ -372,7 +371,6 @@ export default function EventWindDispersion({ breakdown, eventData }) {
           </div>
         </div>
 
-        {/* ── Map + results ── */}
         <div style={{ flex: '1 1 420px', minWidth: 0, overflow: 'hidden' }}>
           <div style={{ height: 400, borderRadius: 8, overflow: 'hidden', border: '1px solid #ddd', marginBottom: '0.75rem', position: 'relative', zIndex: 0 }}>
             <MapContainer center={mapCenter} zoom={12} style={{ height: '100%' }}>
@@ -381,18 +379,21 @@ export default function EventWindDispersion({ breakdown, eventData }) {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
               <FitPolygon polygon={eventData?.polygon} />
-              <LocationPicker onPick={(lat, lon) => { setField('fireLat', Math.round(lat * 10000) / 10000); setField('fireLon', Math.round(lon * 10000) / 10000); setPicking(false); }} enabled={picking} />
+              <MapLocationPicker
+                onPick={(lat, lon) => {
+                  setField('fireLat', Math.round(lat * 10000) / 10000);
+                  setField('fireLon', Math.round(lon * 10000) / 10000);
+                  setPicking(false);
+                }}
+                enabled={picking}
+              />
               {geoJsonData && <GeoJSON data={geoJsonData} style={{ fillColor: '#3388ff', weight: 2, color: '#1a5fa8', fillOpacity: 0.25 }} />}
               <Marker position={mapCenter} />
               {dispersion && selectedCompound && (() => {
                 const latlons = selectedCompound.gridPoints.map(pt => {
-                  const [lat, lon] = offsetToLatLon(
-                    dispersion.fireLat, dispersion.fireLon,
-                    pt.downwindM, pt.crosswindM, dispersion.windDirectionDeg
-                  );
+                  const [lat, lon] = offsetToLatLon(dispersion.fireLat, dispersion.fireLon, pt.downwindM, pt.crosswindM, dispersion.windDirectionDeg);
                   return isFinite(lat) && isFinite(lon) ? [lat, lon, pt.concentrationUgM3] : null;
                 }).filter(Boolean);
-
                 return CONC_BANDS.map(band => {
                   const pts = latlons.filter(([,,c]) => c >= band.min).map(([lat, lon]) => [lat, lon]);
                   if (pts.length < 3) return null;
@@ -410,21 +411,22 @@ export default function EventWindDispersion({ breakdown, eventData }) {
           {dispersion && (
             dispersion.compounds?.length === 0 ? (
               <div style={{ padding: '0.75rem', background: '#fff8e1', border: '1px solid #f9a825', borderRadius: 6, fontSize: '0.83rem' }}>
-                Emisijų nerasta. Patikrinkite, ar įvykio objektų medžiagoms priskirta emisijų kategorija (Medžiagos → redaguoti → Emisijų kategorija).
+                {t('wind_no_emis_detail')}
               </div>
             ) : (
               <>
                 <p style={{ fontSize: '0.82rem', margin: '0 0 0.4rem', wordBreak: 'break-word' }}>
-                  <strong>{dispersion.compounds.length}</strong> junginiai. Vėjas: {dispersion.windSpeedMs} m/s iš {dispersion.windDirectionDeg}°, klasė {dispersion.stabilityClass}.
+                  <strong>{dispersion.compounds.length}</strong> {t('wind_compound_col').toLowerCase()}.{' '}
+                  {t('wind_speed_label')}: {dispersion.windSpeedMs} m/s, {dispersion.windDirectionDeg}°, {dispersion.stabilityClass}.
                 </p>
                 <div style={{ overflowX: 'auto', maxHeight: 220, overflowY: 'auto' }}>
                   <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
                     <thead style={{ position: 'sticky', top: 0, background: '#f0f0f0' }}>
                       <tr>
-                        <th style={{ textAlign: 'left', padding: '3px 8px' }}>Junginys</th>
+                        <th style={{ textAlign: 'left', padding: '3px 8px' }}>{t('wind_compound_col')}</th>
                         <th style={{ textAlign: 'right', padding: '3px 8px' }}>Q (g/s)</th>
-                        <th style={{ textAlign: 'right', padding: '3px 8px' }}>T_n (€/t)</th>
-                        <th style={{ textAlign: 'center', padding: '3px 8px' }}>↗</th>
+                        <th style={{ textAlign: 'right', padding: '3px 8px' }}>T_n (EUR/t)</th>
+                        <th style={{ textAlign: 'center', padding: '3px 8px' }}>{t('wind_map_col')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -434,7 +436,7 @@ export default function EventWindDispersion({ breakdown, eventData }) {
                           onClick={() => setSelectedId(c.compoundId)}>
                           <td style={{ padding: '3px 8px' }}>{c.compoundName}</td>
                           <td style={{ textAlign: 'right', padding: '3px 8px' }}>{c.emissionRateGs.toExponential(2)}</td>
-                          <td style={{ textAlign: 'right', padding: '3px 8px' }}>{c.baseRate != null ? c.baseRate.toLocaleString() : '–'}</td>
+                          <td style={{ textAlign: 'right', padding: '3px 8px' }}>{c.baseRate != null ? c.baseRate.toLocaleString() : '-'}</td>
                           <td style={{ textAlign: 'center', padding: '3px 8px' }}>
                             <button style={{ fontSize: '0.7rem', padding: '1px 4px' }}
                               onClick={e => { e.stopPropagation(); setSelectedId(c.compoundId); }}>●</button>

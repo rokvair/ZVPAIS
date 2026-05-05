@@ -6,6 +6,7 @@ import leafletImage from 'leaflet-image';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,12 +14,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-
-const eventTypeLabel = {
-  gaisras: 'Gaisras',
-  'medžiagų išsiliejimas': 'Medžiagų išsiliejimas',
-  stichija: 'Stichija'
-};
 
 const DONE_STATUSES = ['laukia peržiūros', 'tikrinamas', 'patvirtintas', 'atmestas'];
 
@@ -30,7 +25,6 @@ function FitAndCapture({ polygon, onCapture }) {
       const layer = L.geoJSON(JSON.parse(polygon));
       map.fitBounds(layer.getBounds(), { padding: [20, 20] });
     } catch { }
-    // give tiles a moment to render before capturing
     const timer = setTimeout(() => onCapture(map, polygon), 2500);
     return () => clearTimeout(timer);
   }, [polygon, onCapture]);
@@ -39,11 +33,12 @@ function FitAndCapture({ polygon, onCapture }) {
 
 const ReportList = () => {
   const { isSpecialist } = useAuth();
+  const { t } = useLanguage();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [downloadingId, setDownloadingId] = useState(null);
-  const [pdfJob, setPdfJob] = useState(null); // { eventId, polygon }
+  const [pdfJob, setPdfJob] = useState(null);
 
   useEffect(() => {
     fetchReports();
@@ -54,7 +49,7 @@ const ReportList = () => {
       const res = await api.get('/reports');
       setReports(res.data);
     } catch (err) {
-      setError('Nepavyko gauti ataskaitų.');
+      setError(t('reports_fetch_error'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -62,12 +57,12 @@ const ReportList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Ar tikrai norite ištrinti šią ataskaitą?')) return;
+    if (!window.confirm(t('report_delete_confirm'))) return;
     try {
       await api.delete(`/reports/${id}`);
       setReports(reports.filter(r => r.idDamageEvaluation !== id));
     } catch (err) {
-      alert('Klaida trinant ataskaitą.');
+      alert(t('report_delete_error'));
       console.error(err);
     }
   };
@@ -79,7 +74,7 @@ const ReportList = () => {
       const polygon = eventRes.data.polygon || null;
       setPdfJob({ eventId: report.eventId, polygon });
     } catch {
-      alert('Klaida generuojant PDF.');
+      alert(t('report_pdf_error'));
       setDownloadingId(null);
     }
   };
@@ -101,7 +96,7 @@ const ReportList = () => {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       } catch {
-        alert('Klaida generuojant PDF.');
+        alert(t('report_pdf_error'));
       } finally {
         setPdfJob(null);
         setDownloadingId(null);
@@ -119,29 +114,29 @@ const ReportList = () => {
     }
   };
 
-  if (loading) return <div>Kraunama...</div>;
+  if (loading) return <div>{t('loading')}</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div>
-      <h2>Žalos vertinimo ataskaitos</h2>
-      {isSpecialist && <Link to="/reports/new">Sukurti naują ataskaitą</Link>}
+      <h2>{t('reports_title')}</h2>
+      {isSpecialist && <Link to="/reports/new">{t('reports_new_btn')}</Link>}
       {reports.length === 0 ? (
-        <p style={{ marginTop: '16px' }}>Nėra ataskaitų.</p>
+        <p style={{ marginTop: '16px' }}>{t('reports_none')}</p>
       ) : (
         <table border="1" cellPadding="8" style={{ marginTop: '20px', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Įvykio tipas</th>
-              <th>Įvykio data</th>
-              <th>Vieta</th>
-              <th>Statusas</th>
-              <th>Vertinimo data</th>
-              <th>Žalos dydis (EUR)</th>
-              <th>Piniginis dydis (EUR)</th>
-              <th>Pastabos</th>
-              <th>Veiksmai</th>
+              <th>{t('report_event_type')}</th>
+              <th>{t('report_event_date')}</th>
+              <th>{t('loc_col')}</th>
+              <th>{t('status_col')}</th>
+              <th>{t('report_assess_date')}</th>
+              <th>{t('report_damage_col')}</th>
+              <th>{t('report_monetary_col')}</th>
+              <th>{t('notes_col') ?? 'Pastabos'}</th>
+              <th>{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -151,7 +146,7 @@ const ReportList = () => {
               return (
                 <tr key={r.idDamageEvaluation}>
                   <td>{r.idDamageEvaluation}</td>
-                  <td>{eventTypeLabel[r.eventType] ?? r.eventType}</td>
+                  <td>{r.eventType}</td>
                   <td>{r.eventDate ? new Date(r.eventDate).toLocaleDateString('lt-LT') : '—'}</td>
                   <td>{r.eventLocation || '—'}</td>
                   <td>{r.eventStatus || '—'}</td>
@@ -160,7 +155,7 @@ const ReportList = () => {
                   <td>{r.piniginisDydis != null ? r.piniginisDydis.toFixed(2) : '—'}</td>
                   <td style={{ maxWidth: '200px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{r.notes || '—'}</td>
                   <td>
-                    <Link to={`/events/${r.eventId}/calculation`}>Skaičiavimas</Link>
+                    <Link to={`/events/${r.eventId}/calculation`}>{t('report_calc_link')}</Link>
                     {calcsDone && (
                       <>
                         {' | '}
@@ -169,17 +164,17 @@ const ReportList = () => {
                           disabled={!!downloadingId}
                           style={{ marginLeft: '2px' }}
                         >
-                          {isDownloading ? 'Generuojama...' : 'PDF'}
+                          {isDownloading ? t('report_generating') : 'PDF'}
                         </button>
                       </>
                     )}
                     {isSpecialist && (
                       <>
                         {' | '}
-                        <Link to={`/reports/edit/${r.idDamageEvaluation}`}>Redaguoti</Link>
+                        <Link to={`/reports/edit/${r.idDamageEvaluation}`}>{t('edit')}</Link>
                         {' '}
                         <button onClick={() => handleDelete(r.idDamageEvaluation)} style={{ marginLeft: '4px' }}>
-                          Trinti
+                          {t('delete')}
                         </button>
                       </>
                     )}
@@ -191,7 +186,6 @@ const ReportList = () => {
         </table>
       )}
 
-      {/* Hidden map used only during PDF capture */}
       {pdfJob && (
         <div style={{ position: 'fixed', left: 0, top: 0, width: '700px', height: '450px', opacity: 0, pointerEvents: 'none', zIndex: -1 }}>
           <MapContainer

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export default function LoginPage() {
       await login(form.email, form.password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data || 'Prisijungimo klaida.');
+      setError(err.response?.data || t('login_error'));
     } finally {
       setLoading(false);
     }
@@ -28,11 +30,11 @@ export default function LoginPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Prisijungimas</h2>
+        <h2>{t('login_title')}</h2>
         {error && <div className="auth-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div>
-            <label>El. paštas</label>
+            <label>{t('login_email')}</label>
             <input
               type="email"
               name="email"
@@ -43,7 +45,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label>Slaptažodis</label>
+            <label>{t('login_password')}</label>
             <input
               type="password"
               name="password"
@@ -53,11 +55,11 @@ export default function LoginPage() {
             />
           </div>
           <button type="submit" disabled={loading} className="auth-btn">
-            {loading ? 'Jungiamasi...' : 'Prisijungti'}
+            {loading ? t('login_logging_in') : t('login_btn')}
           </button>
         </form>
         <p className="auth-link">
-          Neturite paskyros? <Link to="/register">Registruotis</Link>
+          {t('login_no_account')} <Link to="/register">{t('nav_register')}</Link>
         </p>
       </div>
     </div>

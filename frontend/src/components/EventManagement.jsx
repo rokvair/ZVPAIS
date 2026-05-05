@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -19,23 +20,6 @@ const TYPE_COLORS = {
   stichija: '#43a047',
 };
 const getColor = (type) => TYPE_COLORS[type] || '#3388ff';
-
-const STATUS_LABELS = {
-  naujas: { label: 'Naujas', color: '#888' },
-  'laukia peržiūros': { label: 'Laukia peržiūros', color: '#e65100' },
-  tikrinamas: { label: 'Tikrinamas', color: '#1565c0' },
-  patvirtintas: { label: 'Patvirtintas', color: '#2e7d32' },
-  atmestas: { label: 'Atmestas', color: '#c62828' },
-};
-
-function StatusBadge({ status }) {
-  const s = STATUS_LABELS[status] || { label: status, color: '#888' };
-  return (
-    <span style={{ background: s.color, color: '#fff', padding: '2px 7px', borderRadius: '3px', fontSize: '0.82em', whiteSpace: 'nowrap' }}>
-      {s.label}
-    </span>
-  );
-}
 
 function MapFlyTo({ selectedEvent }) {
   const map = useMap();
@@ -52,6 +36,7 @@ function MapFlyTo({ selectedEvent }) {
 
 const EventManagement = () => {
   const { isSpecialist } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +45,14 @@ const EventManagement = () => {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [rejectNotes, setRejectNotes] = useState({});
+
+  const statusLabels = () => ({
+    naujas:            { label: t('status_new'),       color: '#888' },
+    'laukia peržiūros':{ label: t('status_awaiting'),  color: '#e65100' },
+    tikrinamas:        { label: t('status_reviewing'),  color: '#1565c0' },
+    patvirtintas:      { label: t('status_approved'),   color: '#2e7d32' },
+    atmestas:          { label: t('status_rejected'),   color: '#c62828' },
+  });
 
   useEffect(() => { fetchEvents(); }, []);
 
@@ -70,7 +63,7 @@ const EventManagement = () => {
       setEvents(res.data);
       setError('');
     } catch (err) {
-      setError('Nepavyko gauti įvykių sąrašo.');
+      setError(t('events_fetch_error'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -78,13 +71,13 @@ const EventManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Ar tikrai norite ištrinti šį įvykį?')) return;
+    if (!window.confirm(t('event_delete_confirm'))) return;
     try {
       await api.delete(`/events/${id}`);
       setEvents(events.filter(e => e.idEvent !== id));
       if (selectedEvent?.idEvent === id) setSelectedEvent(null);
     } catch {
-      alert('Klaida trinant įvykį.');
+      alert(t('event_delete_error'));
     }
   };
 
@@ -93,7 +86,7 @@ const EventManagement = () => {
       await api.post(`/events/${id}/approve`);
       setEvents(events.map(e => e.idEvent === id ? { ...e, status: 'patvirtintas' } : e));
     } catch (err) {
-      alert('Klaida tvirtinant įvykį.');
+      alert(t('event_approve_error'));
       console.error(err);
     }
   };
@@ -105,9 +98,19 @@ const EventManagement = () => {
       setEvents(events.map(e => e.idEvent === id ? { ...e, status: 'atmestas' } : e));
       setRejectNotes(prev => { const n = { ...prev }; delete n[id]; return n; });
     } catch (err) {
-      alert('Klaida atmetant įvykį.');
+      alert(t('event_reject_error'));
       console.error(err);
     }
+  };
+
+  const StatusBadge = ({ status }) => {
+    const labels = statusLabels();
+    const s = labels[status] || { label: status, color: '#888' };
+    return (
+      <span style={{ background: s.color, color: '#fff', padding: '2px 7px', borderRadius: '3px', fontSize: '0.82em', whiteSpace: 'nowrap' }}>
+        {s.label}
+      </span>
+    );
   };
 
   const pending = events.filter(e => e.status === 'laukia peržiūros');
@@ -141,34 +144,33 @@ const EventManagement = () => {
     if (ev) layer.on('click', () => setSelectedEvent(ev));
   };
 
-  if (loading) return <div>Kraunama...</div>;
+  if (loading) return <div>{t('loading')}</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div>
-      {/* Pending review queue — Specialist only */}
       {isSpecialist && pending.length > 0 && (
         <div style={{ marginBottom: '20px', border: '2px solid #e65100', borderRadius: '6px', padding: '12px', background: '#fff8f5' }}>
-          <h3 style={{ margin: '0 0 10px', color: '#e65100' }}>⚠ Laukia peržiūros ({pending.length})</h3>
+          <h3 style={{ margin: '0 0 10px', color: '#e65100' }}>⚠ {t('status_awaiting')} ({pending.length})</h3>
           {pending.map(ev => (
             <div key={ev.idEvent} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap', borderBottom: '1px solid #ffe0cc', paddingBottom: '8px' }}>
               <span style={{ minWidth: '24px', fontWeight: 'bold' }}>#{ev.idEvent}</span>
               <span style={{ background: getColor(ev.eventType), color: '#fff', padding: '2px 6px', borderRadius: '3px', fontSize: '0.82em' }}>{ev.eventType}</span>
               <span>{new Date(ev.eventDate).toLocaleDateString('lt-LT')}</span>
               {ev.location && <span style={{ color: '#555' }}>{ev.location}</span>}
-              <Link to={`/events/${ev.idEvent}/calculation`} style={{ marginLeft: 'auto' }}>Žiūrėti skaičiavimą</Link>
+              <Link to={`/events/${ev.idEvent}/calculation`} style={{ marginLeft: 'auto' }}>{t('event_view_calc')}</Link>
               <button onClick={() => handleApprove(ev.idEvent)} style={{ background: '#2e7d32', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '3px', cursor: 'pointer' }}>
-                Patvirtinti
+                {t('event_approve')}
               </button>
               <input
                 type="text"
-                placeholder="Atmetimo priežastis..."
+                placeholder={t('event_reject_reason')}
                 value={rejectNotes[ev.idEvent] || ''}
                 onChange={e => setRejectNotes(prev => ({ ...prev, [ev.idEvent]: e.target.value }))}
                 style={{ width: '180px', padding: '3px 6px', fontSize: '0.85em' }}
               />
               <button onClick={() => handleReject(ev.idEvent)} style={{ background: '#c62828', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '3px', cursor: 'pointer' }}>
-                Atmesti
+                {t('event_reject')}
               </button>
             </div>
           ))}
@@ -176,45 +178,43 @@ const EventManagement = () => {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 style={{ margin: 0 }}>Įvykiai</h2>
-        <Link to="/events/new">+ Naujas įvykis</Link>
+        <h2 style={{ margin: 0 }}>{t('events_title')}</h2>
+        <Link to="/events/new">{t('events_new')}</Link>
       </div>
 
-      {/* Filters */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
         <select value={filterType} onChange={e => setFilterType(e.target.value)}>
-          <option value="">Visi tipai</option>
-          <option value="gaisras">Gaisras</option>
-          <option value="medžiagų išsiliejimas">Medžiagų išsiliejimas</option>
-          <option value="stichija">Stichija</option>
+          <option value="">{t('events_filter_all_types')}</option>
+          <option value="gaisras">{t('event_type_fire')}</option>
+          <option value="medžiagų išsiliejimas">{t('event_type_spill')}</option>
+          <option value="stichija">{t('event_type_disaster')}</option>
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="">Visi statusai</option>
-          <option value="naujas">Naujas</option>
-          <option value="laukia peržiūros">Laukia peržiūros</option>
-          <option value="tikrinamas">Tikrinamas</option>
-          <option value="patvirtintas">Patvirtintas</option>
-          <option value="atmestas">Atmestas</option>
+          <option value="">{t('events_filter_all_statuses')}</option>
+          <option value="naujas">{t('status_new')}</option>
+          <option value="laukia peržiūros">{t('status_awaiting')}</option>
+          <option value="tikrinamas">{t('status_reviewing')}</option>
+          <option value="patvirtintas">{t('status_approved')}</option>
+          <option value="atmestas">{t('status_rejected')}</option>
         </select>
       </div>
 
       <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-        {/* Event table */}
         <div style={{ flex: '1', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
             <thead>
               <tr style={{ background: '#f5f5f5' }}>
                 <th style={th}>ID</th>
-                <th style={th}>Tipas</th>
-                <th style={th}>Data</th>
-                <th style={th}>Vieta</th>
-                <th style={th}>Statusas</th>
-                <th style={th}>Veiksmai</th>
+                <th style={th}>{t('type_col')}</th>
+                <th style={th}>{t('date_col')}</th>
+                <th style={th}>{t('loc_col')}</th>
+                <th style={th}>{t('status_col')}</th>
+                <th style={th}>{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} style={{ padding: '12px', textAlign: 'center', color: '#888' }}>Įvykių nerasta</td></tr>
+                <tr><td colSpan={6} style={{ padding: '12px', textAlign: 'center', color: '#888' }}>{t('events_none_found')}</td></tr>
               )}
               {filtered.map(event => (
                 <tr
@@ -236,11 +236,11 @@ const EventManagement = () => {
                   <td style={td}>{event.location || '—'}</td>
                   <td style={td}><StatusBadge status={event.status} /></td>
                   <td style={td} onClick={e => e.stopPropagation()}>
-                    <Link to={`/events/${event.idEvent}/calculation`} style={{ marginRight: '6px' }}>Žala</Link>
+                    <Link to={`/events/${event.idEvent}/calculation`} style={{ marginRight: '6px' }}>{t('event_damage_link')}</Link>
                     {isSpecialist && (
                       <>
-                        <Link to={`/events/edit/${event.idEvent}`} style={{ marginRight: '6px' }}>Redaguoti</Link>
-                        <button onClick={() => handleDelete(event.idEvent)} style={{ fontSize: '0.85em' }}>Trinti</button>
+                        <Link to={`/events/edit/${event.idEvent}`} style={{ marginRight: '6px' }}>{t('edit')}</Link>
+                        <button onClick={() => handleDelete(event.idEvent)} style={{ fontSize: '0.85em' }}>{t('delete')}</button>
                       </>
                     )}
                   </td>
@@ -250,7 +250,6 @@ const EventManagement = () => {
           </table>
         </div>
 
-        {/* Map panel */}
         <div style={{ width: '420px', flexShrink: 0 }}>
           <MapContainer
             center={[55.0, 24.0]}
