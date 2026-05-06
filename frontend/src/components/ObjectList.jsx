@@ -51,7 +51,7 @@ const ObjectList = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <h2 style={{ margin: 0 }}>{t('objects_title')}</h2>
-        {isSpecialist && <Link to="/objects/new">{t('objects_new')}</Link>}
+         <Link to="/objects/new">{t('objects_new')}</Link>
       </div>
       {objects.length === 0 ? (
         <p>{t('objects_none')}</p>
